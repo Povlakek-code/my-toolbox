@@ -1,236 +1,670 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>全能瑞士军刀 - 工具与小游戏合集</title>
+  <meta name="description" content="纯前端静态工具箱与小游戏合集，支持开发调试、文本处理、图片工具、日常效率工具和经典小游戏。" />
 
-<title>瑞士军刀 Toolbox Pro</title>
+  https://cdn.tailwindcss.comscript>
 
-<script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      color-scheme: light;
+    }
 
-<style>
-body{
-  min-height:100vh;
-  background:linear-gradient(135deg,#eef2ff,#fdf2f8);
-}
+    * {
+      box-sizing: border-box;
+    }
 
-/* 动态背景 */
-.bg-light{
-  position:fixed; inset:0; z-index:-1;
-}
-.bg-light div{
-  position:absolute;border-radius:50%;filter:blur(100px);
-}
-.bg1{width:400px;height:400px;background:#6366f1;left:-100px;top:-100px;}
-.bg2{width:500px;height:500px;background:#0ea5e9;right:-150px;top:20%;}
-.bg3{width:500px;height:500px;background:#f472b6;bottom:-200px;left:30%;}
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 34%),
+        radial-gradient(circle at top right, rgba(14, 165, 233, 0.18), transparent 30%),
+        linear-gradient(135deg, #f8fafc 0%, #eef2ff 45%, #fdf2f8 100%);
+    }
 
-/* 卡片 */
-.tool-card{
-  position:relative;
-  transition:.2s;
-}
-.tool-card:hover{
-  transform:translateY(-6px) scale(1.02);
-  box-shadow:0 20px 60px rgba(0,0,0,.15);
-}
-.tool-card:active{transform:scale(.96);}
+    .glass {
+      background: rgba(255, 255, 255, 0.76);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.76);
+    }
 
-/* ripple */
-.ripple{
- position:absolute;width:120px;height:120px;border-radius:50%;
- background:rgba(99,102,241,.3);
- transform:translate(-50%,-50%);
- animation:ripple .6s;
-}
-@keyframes ripple{
- from{opacity:.6;transform:scale(.5);}
- to{opacity:0;transform:scale(2);}
-}
+    .tool-card {
+      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+    }
 
-/* dark */
-.dark body{background:#0f172a;color:#e2e8f0;}
-.dark .card{background:#1e293b;}
+    .tool-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 24px 55px rgba(15, 23, 42, 0.13);
+      border-color: rgba(99, 102, 241, 0.38);
+    }
 
-.hidden{display:none!important;}
-</style>
+    .tab-btn.active {
+      color: #ffffff;
+      background: linear-gradient(135deg, #4f46e5, #0ea5e9);
+      box-shadow: 0 14px 30px rgba(79, 70, 229, 0.25);
+    }
+
+    .fade-in {
+      animation: fadeIn 0.28s ease both;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    mark {
+      background: #fef3c7;
+      color: #92400e;
+      border-radius: 0.25rem;
+      padding: 0 0.12rem;
+    }
+  </style>
 </head>
 
-<body>
+<body class="text-slate-800">
+  <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <header class="glass rounded-[2rem] p-6 shadow-xl shadow-indigo-100/60 sm:p-8">
+      <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <div class="mb-4 inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-indigo-700 shadow-sm">
+            <span>⚡</span>
+            <span>纯前端 · GitHub Pages 友好 · 本地运行</span>
+          </div>
 
-<div class="bg-light">
-  <div class="bg1"></div>
-  <div class="bg2"></div>
-  <div class="bg3"></div>
-</div>
+          <h1 class="text-3xl font-black tracking-tight text-slate-950 sm:text-5xl">
+            全能瑞士军刀
+          </h1>
 
-<main class="max-w-7xl mx-auto p-6">
+          <p class="mt-4 max-w-3xl text-base leading-8 text-slate-600 sm:text-lg">
+            一个集成常用小工具与经典小游戏的纯静态主页。无需后端，打开即用。
+            工具数据主要在浏览器本地处理，适合部署到 GitHub Pages、Cloudflare Pages、Vercel 或本地离线使用。
+          </p>
+        </div>
 
-<!-- HEADER -->
-<header class="flex justify-between items-center mb-6">
-  <div class="flex items-center gap-3">
-    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-pink-500 text-white flex items-center justify-center font-bold">✦</div>
-    <div>
-      <div class="font-black text-lg">Toolbox Pro</div>
-      <div class="text-xs text-slate-500">by Soren</div>
+        <div class="grid grid-cols-3 gap-3 rounded-3xl bg-white/70 p-4 shadow-inner">
+          <div class="text-center">
+            <div id="statAll" class="text-2xl font-black text-indigo-600">0</div>
+            <div class="mt-1 text-xs font-semibold text-slate-500">全部项目</div>
+          </div>
+          <div class="text-center">
+            <div id="statTools" class="text-2xl font-black text-sky-600">0</div>
+            <div class="mt-1 text-xs font-semibold text-slate-500">实用工具</div>
+          </div>
+          <div class="text-center">
+            <div id="statGames" class="text-2xl font-black text-pink-600">0</div>
+            <div class="mt-1 text-xs font-semibold text-slate-500">小游戏</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search -->
+      <section class="mt-8">
+        <div class="relative">
+          <span class="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-xl">🔍</span>
+          <input
+            id="searchInput"
+            type="search"
+            placeholder="搜索工具或游戏：JSON、二维码、贪吃蛇、2048、rmb、uuid、三消、maze..."
+            class="w-full rounded-2xl border border-white/80 bg-white/85 py-4 pl-14 pr-5 text-base font-medium text-slate-800 outline-none shadow-sm transition focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+          />
+        </div>
+      </section>
+
+      <!-- Tabs -->
+      <nav class="mt-6 flex flex-wrap gap-3" aria-label="分类筛选">
+        <button class="tab-btn active rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-600 shadow-sm transition" data-filter="all">
+          全部 <span class="count ml-1 opacity-80" data-count="all">(0)</span>
+        </button>
+        <button class="tab-btn rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-600 shadow-sm transition" data-filter="dev">
+          👨‍💻 开发调试 <span class="count ml-1 opacity-80" data-count="dev">(0)</span>
+        </button>
+        <button class="tab-btn rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-600 shadow-sm transition" data-filter="text">
+          🔤 文本处理 <span class="count ml-1 opacity-80" data-count="text">(0)</span>
+        </button>
+        <button class="tab-btn rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-600 shadow-sm transition" data-filter="image">
+          🖼️ 图片颜色 <span class="count ml-1 opacity-80" data-count="image">(0)</span>
+        </button>
+        <button class="tab-btn rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-600 shadow-sm transition" data-filter="daily">
+          🎈 日常效率 <span class="count ml-1 opacity-80" data-count="daily">(0)</span>
+        </button>
+        <button class="tab-btn rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-600 shadow-sm transition" data-filter="game">
+          🎮 休闲小游戏 <span class="count ml-1 opacity-80" data-count="game">(0)</span>
+        </button>
+      </nav>
+    </header>
+
+    <!-- Notice -->
+    <section class="mt-6 rounded-3xl border border-indigo-100 bg-white/70 p-4 text-sm leading-7 text-slate-600 shadow-sm">
+      <strong class="text-slate-900">目录结构提示：</strong>
+      当前主页默认工具文件位于 <code class="rounded bg-slate-100 px-1.5 py-0.5">tools/</code>，
+      游戏文件位于 <code class="rounded bg-slate-100 px-1.5 py-0.5">games/</code>。
+      如果后续移动文件，只需要修改卡片的 <code class="rounded bg-slate-100 px-1.5 py-0.5">href</code> 即可。
+    </section>
+
+    <!-- Empty -->
+    <div id="emptyState" class="mt-12 hidden rounded-[2rem] border border-dashed border-slate-300 bg-white/70 p-10 text-center">
+      <div class="text-5xl">💨</div>
+      <h2 class="mt-4 text-xl font-black text-slate-900">没有找到匹配结果</h2>
+      <p class="mt-2 text-slate-500">换个关键词试试，比如 json、base64、snake、2048、颜色、密码、三消。</p>
     </div>
-  </div>
 
-  <div class="flex gap-3">
-    <button id="cmdBtn">⌘</button>
-    <button id="darkBtn">🌙</button>
-  </div>
-</header>
+    <!-- Cards -->
+    <section id="cardsGrid" class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 
-<!-- SEARCH -->
-<input id="search" placeholder="搜索工具（按 / 快捷键）"
-class="w-full p-3 rounded-xl mb-4 shadow"/>
+      <!-- Dev Tools -->
+      ./tools/timestamp.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🕒</span>
+          <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600">开发调试</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">时间戳转换</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">Unix 时间戳与标准时间双向转换，适合接口调试和日志排查。</p>
+        <div class="mt-5 text-sm font-bold text-indigo-600 group-hover:text-indigo-700">打开工具 →</div>
+      </a>
 
-<!-- 分类 -->
-<div class="flex flex-wrap gap-2 mb-4">
-  <button class="tab active" data="all">全部</button>
-  <button class="tab" data="dev">开发</button>
-  <button class="tab" data="game">游戏</button>
-</div>
+      ./tools/json-tools.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">📊</span>
+          <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600">开发调试</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">JSON 格式化</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">美化、压缩、校验 JSON 字符串，处理接口报文更方便。</p>
+        <div class="mt-5 text-sm font-bold text-indigo-600 group-hover:text-indigo-700">打开工具 →</div>
+      </a>
 
-<!-- 最近使用 -->
-<div id="recent" class="text-sm text-slate-500 mb-3"></div>
+      ./tools/base64-tools.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🔒</span>
+          <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600">开发调试</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">Base64 编解码</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">文本与 Base64 相互转换，支持中文内容处理。</p>
+        <div class="mt-5 text-sm font-bold text-indigo-600 group-hover:text-indigo-700">打开工具 →</div>
+      </a>
 
-<!-- grid -->
-<div id="grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      ./tools/url-tools.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🔗</span>
+          <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600">开发调试</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">URL 编解码</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">快速处理网址参数中的中文、空格和特殊符号。</p>
+        <div class="mt-5 text-sm font-bold text-indigo-600 group-hover:text-indigo-700">打开工具 →</div>
+      </a>
 
-<a class="tool-card card p-4 bg-white rounded-xl"
-href="./tools/json-tools.html" data-cat="dev">
-📊 JSON工具 ⭐
-</a>
+      ./tools/cron-tools.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">⏰</span>
+          <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600">开发调试</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">Cron 表达式</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">常用定时任务表达式生成与解读。</p>
+        <div class="mt-5 text-sm font-bold text-indigo-600 group-hover:text-indigo-700">打开工具 →</div>
+      </a>
 
-<a class="tool-card card p-4 bg-white rounded-xl"
-href="./tools/base64-tools.html" data-cat="dev">
-🔒 Base64
-</a>
+      ./tools/hash-tools.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🛡️</span>
+          <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600">开发调试</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">哈希生成器</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">生成 MD5、SHA 等常用散列值，适合校验和标识。</p>
+        <div class="mt-5 text-sm font-bold text-indigo-600 group-hover:text-indigo-700">打开工具 →</div>
+      </a>
 
-<a class="tool-card card p-4 bg-white rounded-xl"
-href="./games/game-snake.html" data-cat="game">
-🐍 贪吃蛇
-</a>
+      ./tools/binary-tools.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🔢</span>
+          <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600">开发调试</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">进制转换器</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">2、8、10、16 进制之间快速联动转换。</p>
+        <div class="mt-5 text-sm font-bold text-indigo-600 group-hover:text-indigo-700">打开工具 →</div>
+      </a>
 
-<a class="tool-card card p-4 bg-white rounded-xl"
-href="./games/game-2048.html" data-cat="game">
-🎲 2048
-</a>
+      ./tools/regex-tools.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🧪</span>
+          <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600">开发调试</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">正则表达式测试</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">输入正则和测试文本，快速查看匹配结果。</p>
+        <div class="mt-5 text-sm font-bold text-indigo-600 group-hover:text-indigo-700">打开工具 →</div>
+      </a>
 
-</div>
+      ./tools/ua-tools.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🔍</span>
+          <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600">开发调试</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">User-Agent 解析</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">解析浏览器、系统、设备类型等 UA 信息。</p>
+        <div class="mt-5 text-sm font-bold text-indigo-600 group-hover:text-indigo-700">打开工具 →</div>
+      </a>
 
-</main>
+      ./tools/morse-code.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">📟</span>
+          <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600">开发调试</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">摩尔斯电码</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">英文、数字与摩尔斯电码之间互相转换。</p>
+        <div class="mt-5 text-sm font-bold text-indigo-600 group-hover:text-indigo-700">打开工具 →</div>
+      </a>
 
-<!-- CMD 面板 -->
-<div id="cmd"
-class="hidden fixed inset-0 bg-black/40 flex items-start justify-center pt-40">
+      ./tools/html-entities.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🧬</span>
+          <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600">开发调试</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">HTML 实体转换</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">HTML 特殊字符转义与反转义。</p>
+        <div class="mt-5 text-sm font-bold text-indigo-600 group-hover:text-indigo-700">打开工具 →</div>
+      </a>
 
-<div class="bg-white w-[420px] rounded-xl p-3 shadow-xl">
-<input id="cmdInput" placeholder="输入工具名"
-class="w-full p-2 border rounded mb-2"/>
-<div id="cmdList"></div>
-</div>
-</div>
+      ./tools/uuid-generator.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🆔</span>
+          <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600">开发调试</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">UUID 生成器</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">批量生成唯一 UUID/GUID，适合 Mock 和数据库场景。</p>
+        <div class="mt-5 text-sm font-bold text-indigo-600 group-hover:text-indigo-700">打开工具 →</div>
+      </a>
 
-<script>
-const cards=[...document.querySelectorAll(".tool-card")];
-const search=document.getElementById("search");
-const tabs=document.querySelectorAll(".tab");
+      ./tools/csv-json.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">📑</span>
+          <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600">开发调试</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">CSV / JSON 互转</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">CSV 表格文本与 JSON 数组对象双向转换。</p>
+        <div class="mt-5 text-sm font-bold text-indigo-600 group-hover:text-indigo-700">打开工具 →</div>
+      </a>
 
-let current="all";
+      <!-- Text Tools -->
+      ./tools/text-tools.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🔤</span>
+          <span class="rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-sky-600">文本处理</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">文本处理工具</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">字数统计、行数统计、大小写转换、去空格等。</p>
+        <div class="mt-5 text-sm font-bold text-sky-600 group-hover:text-sky-700">打开工具 →</div>
+      </a>
 
-/* 分类 */
-tabs.forEach(btn=>{
-  btn.onclick=()=>{
-    tabs.forEach(b=>b.classList.remove("active"));
-    btn.classList.add("active");
-    current=btn.dataset.data;
-    filter();
-  }
-});
+      ./tools/markdown-tools.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">📝</span>
+          <span class="rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-sky-600">文本处理</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">Markdown 预览</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">左侧写 Markdown，右侧实时预览渲染效果。</p>
+        <div class="mt-5 text-sm font-bold text-sky-600 group-hover:text-sky-700">打开工具 →</div>
+      </a>
 
-/* 搜索 */
-search.oninput=filter;
+      ./tools/case-generator.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">✨</span>
+          <span class="rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-sky-600">文本处理</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">花样文本生成</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">生成波浪大小写、删除线、气泡字等趣味文本。</p>
+        <div class="mt-5 text-sm font-bold text-sky-600 group-hover:text-sky-700">打开工具 →</div>
+      </a>
 
-function filter(){
-  const key=search.value.toLowerCase();
-  cards.forEach(c=>{
-    const show=(current==="all"||c.dataset.cat===current)
-      && c.innerText.toLowerCase().includes(key);
-    c.classList.toggle("hidden",!show);
-  });
-}
+      ./tools/text-diff.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">⚖️</span>
+          <span class="rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-sky-600">文本处理</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">文本差异对比</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">对比两段文本，快速查看新增、删除和变化。</p>
+        <div class="mt-5 text-sm font-bold text-sky-600 group-hover:text-sky-700">打开工具 →</div>
+      </a>
 
-/* 快捷键 / */
-document.addEventListener("keydown",e=>{
-  if(e.key==="/"){
-    e.preventDefault();
-    search.focus();
-  }
-});
+      ./tools/text-cleaner.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🧹</span>
+          <span class="rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-sky-600">文本处理</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">文本清洗去重</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">按行去重、排序、清理名单、邮箱、手机号等文本。</p>
+        <div class="mt-5 text-sm font-bold text-sky-600 group-hover:text-sky-700">打开工具 →</div>
+      </a>
 
-/* ripple */
-cards.forEach(c=>{
-  c.onclick=e=>{
-    const r=document.createElement("div");
-    r.className="ripple";
-    const rect=c.getBoundingClientRect();
-    r.style.left=(e.clientX-rect.left)+"px";
-    r.style.top=(e.clientY-rect.top)+"px";
-    c.appendChild(r);
-    setTimeout(()=>r.remove(),600);
+      <!-- Image & Color -->
+      ./tools/image-tools.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🖼️</span>
+          <span class="rounded-full bg-fuchsia-50 px-3 py-1 text-xs font-bold text-fuchsia-600">图片颜色</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">图片压缩转换</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">本地压缩图片，并在 JPG、PNG、WebP 间转换。</p>
+        <div class="mt-5 text-sm font-bold text-fuchsia-600 group-hover:text-fuchsia-700">打开工具 →</div>
+      </a>
 
-    /* 最近使用 */
-    localStorage.setItem("last",c.innerText);
-  }
-});
+      ./tools/image-to-base64.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🧾</span>
+          <span class="rounded-full bg-fuchsia-50 px-3 py-1 text-xs font-bold text-fuchsia-600">图片颜色</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">图片转 Base64</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">把图片转换成可直接嵌入代码的 DataURI。</p>
+        <div class="mt-5 text-sm font-bold text-fuchsia-600 group-hover:text-fuchsia-700">打开工具 →</div>
+      </a>
 
-/* 最近 */
-const last=localStorage.getItem("last");
-if(last){
- document.getElementById("recent").innerText="最近："+last;
-}
+      ./tools/color-tools.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🎨</span>
+          <span class="rounded-full bg-fuchsia-50 px-3 py-1 text-xs font-bold text-fuchsia-600">图片颜色</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">颜色转换器</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">HEX、RGB、HSL 颜色格式互转与拾取。</p>
+        <div class="mt-5 text-sm font-bold text-fuchsia-600 group-hover:text-fuchsia-700">打开工具 →</div>
+      </a>
 
-/* dark */
-const darkBtn=document.getElementById("darkBtn");
-darkBtn.onclick=()=>{
-  document.documentElement.classList.toggle("dark");
-  localStorage.setItem("dark",document.documentElement.classList.contains("dark"));
-}
-if(localStorage.getItem("dark")==="true"){
- document.documentElement.classList.add("dark");
-}
+      <!-- Daily Tools -->
+      ./tools/password-generator.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🔑</span>
+          <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600">日常效率</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">密码生成器</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">生成高强度随机密码，支持长度和字符类型配置。</p>
+        <div class="mt-5 text-sm font-bold text-emerald-600 group-hover:text-emerald-700">打开工具 →</div>
+      </a>
 
-/* CMD 面板 */
-const cmd=document.getElementById("cmd");
-const cmdInput=document.getElementById("cmdInput");
-const cmdList=document.getElementById("cmdList");
+      ./tools/qrcode-tools.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">📱</span>
+          <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600">日常效率</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">二维码生成器</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">将网址、文本、联系方式快速生成二维码。</p>
+        <div class="mt-5 text-sm font-bold text-emerald-600 group-hover:text-emerald-700">打开工具 →</div>
+      </a>
 
-document.getElementById("cmdBtn").onclick=()=>{
-  cmd.classList.remove("hidden");
-  cmdInput.focus();
-};
+      ./tools/rmb-tools.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">💰</span>
+          <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600">日常效率</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">人民币大写</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">将数字金额转换为规范财务大写。</p>
+        <div class="mt-5 text-sm font-bold text-emerald-600 group-hover:text-emerald-700">打开工具 →</div>
+      </a>
 
-cmd.onclick=e=>{
-  if(e.target===cmd)cmd.classList.add("hidden");
-};
+      ./tools/calc-tools.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🧮</span>
+          <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600">日常效率</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">计算器</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">极简计算面板，支持常见数学运算。</p>
+        <div class="mt-5 text-sm font-bold text-emerald-600 group-hover:text-emerald-700">打开工具 →</div>
+      </a>
 
-cmdInput.oninput=()=>{
- const key=cmdInput.value.toLowerCase();
- cmdList.innerHTML="";
- cards.forEach(c=>{
-  if(c.innerText.toLowerCase().includes(key)){
-    const item=document.createElement("div");
-    item.textContent=c.innerText;
-    item.className="p-2 hover:bg-gray-100 cursor-pointer";
-    item.onclick=()=>location.href=c.href;
-    cmdList.appendChild(item);
-  }
- });
-};
-</script>
+      ./tools/whiteboard.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🧑‍🎨</span>
+          <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600">日常效率</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">极简白板</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">Canvas 画板，适合临时涂鸦、草图和讲解。</p>
+        <div class="mt-5 text-sm font-bold text-emerald-600 group-hover:text-emerald-700">打开工具 →</div>
+      </a>
 
+      ./tools/timezone-converter.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🌐</span>
+          <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600">日常效率</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">时区转换器</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">多地时间对照，适合跨时区协作。</p>
+        <div class="mt-5 text-sm font-bold text-emerald-600 group-hover:text-emerald-700">打开工具 →</div>
+      </a>
+
+      ./tools/unit-converter.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">📐</span>
+          <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600">日常效率</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">单位换算</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">长度、重量等常用单位快速换算。</p>
+        <div class="mt-5 text-sm font-bold text-emerald-600 group-hover:text-emerald-700">打开工具 →</div>
+      </a>
+
+      ./tools/timer.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">⏱️</span>
+          <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600">日常效率</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">秒表与倒计时</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">高精度秒表和倒计时，适合番茄钟、训练和提醒。</p>
+        <div class="mt-5 text-sm font-bold text-emerald-600 group-hover:text-emerald-700">打开工具 →</div>
+      </a>
+
+      <!-- Games -->
+      ./games/game-snake.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🐍</span>
+          <span class="rounded-full bg-pink-50 px-3 py-1 text-xs font-bold text-pink-600">休闲小游戏</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">经典贪吃蛇</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">方向键控制蛇移动，吃苹果变长，挑战最高分。</p>
+        <div class="mt-5 text-sm font-bold text-pink-600 group-hover:text-pink-700">开始游戏 →</div>
+      </a>
+
+      ./games/game-tetris.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🧱</span>
+          <span class="rounded-full bg-pink-50 px-3 py-1 text-xs font-bold text-pink-600">休闲小游戏</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">俄罗斯方块</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">经典方块消除，移动、旋转、加速下落。</p>
+        <div class="mt-5 text-sm font-bold text-pink-600 group-hover:text-pink-700">开始游戏 →</div>
+      </a>
+
+      ./games/game-2048.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🎲</span>
+          <span class="rounded-full bg-pink-50 px-3 py-1 text-xs font-bold text-pink-600">休闲小游戏</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">2048</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">滑动合并数字方块，努力合成 2048。</p>
+        <div class="mt-5 text-sm font-bold text-pink-600 group-hover:text-pink-700">开始游戏 →</div>
+      </a>
+
+      ./games/game-pacman.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🕹️</span>
+          <span class="rounded-full bg-pink-50 px-3 py-1 text-xs font-bold text-pink-600">休闲小游戏</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">经典吃豆人</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">走迷宫吃豆子，躲开幽灵追击。</p>
+        <div class="mt-5 text-sm font-bold text-pink-600 group-hover:text-pink-700">开始游戏 →</div>
+      </a>
+
+      ./games/game-bird.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🐦</span>
+          <span class="rounded-full bg-pink-50 px-3 py-1 text-xs font-bold text-pink-600">休闲小游戏</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">飞翔的小鸟</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">点击或空格控制小鸟飞行，躲避管道。</p>
+        <div class="mt-5 text-sm font-bold text-pink-600 group-hover:text-pink-700">开始游戏 →</div>
+      </a>
+
+      ./games/game-pong.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🏓</span>
+          <span class="rounded-full bg-pink-50 px-3 py-1 text-xs font-bold text-pink-600">休闲小游戏</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">弹球大作战</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">经典 Pong 玩法，控制挡板与电脑对战。</p>
+        <div class="mt-5 text-sm font-bold text-pink-600 group-hover:text-pink-700">开始游戏 →</div>
+      </a>
+
+      ./games/game-shooter.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🚀</span>
+          <span class="rounded-full bg-pink-50 px-3 py-1 text-xs font-bold text-pink-600">休闲小游戏</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">星际雷电射击</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">移动战机、躲避弹幕、击落敌人，带粒子特效。</p>
+        <div class="mt-5 text-sm font-bold text-pink-600 group-hover:text-pink-700">开始游戏 →</div>
+      </a>
+
+      ./games/game-brick.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🧱</span>
+          <span class="rounded-full bg-pink-50 px-3 py-1 text-xs font-bold text-pink-600">休闲小游戏</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">高级打砖块</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">反弹球击碎砖块，包含道具掉落机制。</p>
+        <div class="mt-5 text-sm font-bold text-pink-600 group-hover:text-pink-700">开始游戏 →</div>
+      </a>
+
+      ./games/game-match3.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">💎</span>
+          <span class="rounded-full bg-pink-50 px-3 py-1 text-xs font-bold text-pink-600">休闲小游戏</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">宝石三消</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">交换相邻宝石，连成三个即可消除得分。</p>
+        <div class="mt-5 text-sm font-bold text-pink-600 group-hover:text-pink-700">开始游戏 →</div>
+      </a>
+
+      ./games/game-3d-maze.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">👁️</span>
+          <span class="rounded-full bg-pink-50 px-3 py-1 text-xs font-bold text-pink-600">休闲小游戏</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">3D 射线迷宫</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">伪 3D Raycasting 视角，探索迷宫寻找出口。</p>
+        <div class="mt-5 text-sm font-bold text-pink-600 group-hover:text-pink-700">开始游戏 →</div>
+      </a>
+
+      ./games/game-autochess.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">⚔️</span>
+          <span class="rounded-full bg-pink-50 px-3 py-1 text-xs font-bold text-pink-600">休闲小游戏</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">英雄自走棋</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">购买英雄、自动战斗、释放技能的策略小游戏。</p>
+        <div class="mt-5 text-sm font-bold text-pink-600 group-hover:text-pink-700">开始游戏 →</div>
+      </a>
+
+      ./games/game-rogue.html
+        <div class="flex items-center justify-between">
+          <span class="text-4xl">🗺️</span>
+          <span class="rounded-full bg-pink-50 px-3 py-1 text-xs font-bold text-pink-600">休闲小游戏</span>
+        </div>
+        <h2 class="mt-5 text-lg font-black text-slate-950">像素地牢 Roguelike</h2>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">随机地牢、怪物、宝箱与生命值判定。</p>
+        <div class="mt-5 text-sm font-bold text-pink-600 group-hover:text-pink-700">开始游戏 →</div>
+      </a>
+    </section>
+
+    <footer class="mt-12 pb-6 text-center text-sm text-slate-500">
+      <p>© 2026 全能瑞士军刀 · 纯前端静态工具与小游戏合集</p>
+      <p class="mt-2">建议部署到 GitHub Pages / Cloudflare Pages / Vercel，或本地直接打开使用。</p>
+    </footer>
+  </main>
+
+  <script>
+    const cards = Array.from(document.querySelectorAll(".tool-card"));
+    const searchInput = document.getElementById("searchInput");
+    const tabButtons = Array.from(document.querySelectorAll(".tab-btn"));
+    const emptyState = document.getElementById("emptyState");
+
+    let currentFilter = "all";
+
+    function normalizeText(text) {
+      return String(text || "")
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function updateCounts() {
+      const categories = ["all", "dev", "text", "image", "daily", "game"];
+
+      categories.forEach(cat => {
+        const count = cat === "all"
+          ? cards.length
+          : cards.filter(card => card.dataset.cat === cat).length;
+
+        document.querySelectorAll(`[data-count="${cat}"]`).forEach(el => {
+          el.textContent = `(${count})`;
+        });
+      });
+
+      document.getElementById("statAll").textContent = cards.length;
+      document.getElementById("statTools").textContent =
+        cards.filter(card => card.dataset.cat !== "game").length;
+      document.getElementById("statGames").textContent =
+        cards.filter(card => card.dataset.cat === "game").length;
+    }
+
+    function filterCards() {
+      const keyword = normalizeText(searchInput.value);
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const cat = card.dataset.cat;
+        const text = normalizeText(card.innerText);
+        const keywords = normalizeText(card.dataset.keywords);
+        const href = normalizeText(card.getAttribute("href"));
+
+        const matchCategory = currentFilter === "all" || cat === currentFilter;
+        const matchKeyword =
+          !keyword ||
+          text.includes(keyword) ||
+          keywords.includes(keyword) ||
+          href.includes(keyword);
+
+        const visible = matchCategory && matchKeyword;
+
+        card.classList.toggle("hidden", !visible);
+
+        if (visible) {
+          visibleCount += 1;
+          card.classList.remove("fade-in");
+          void card.offsetWidth;
+          card.classList.add("fade-in");
+        }
+      });
+
+      emptyState.classList.toggle("hidden", visibleCount !== 0);
+    }
+
+    tabButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        tabButtons.forEach(item => item.classList.remove("active"));
+        btn.classList.add("active");
+        currentFilter = btn.dataset.filter;
+        filterCards();
+      });
+    });
+
+    searchInput.addEventListener("input", filterCards);
+
+    updateCounts();
+    filterCards();
+  </script>
 </body>
 </html>
