@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时间戳转换 - 极简工具箱</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen p-6">
+    <div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-md">
+        <div class="mb-6">
+            <a href="./index.html" class="text-sm text-blue-600 hover:underline">← 返回首页</a>
+            <h2 class="text-2xl font-bold mt-2">🕒 时间戳转换</h2>
+        </div>
+
+        <!-- 当前时间 -->
+        <div class="mb-6 p-4 bg-blue-50 rounded-lg flex justify-between items-center">
+            <div>
+                <span class="text-sm text-blue-700 font-medium">当前时间戳 (秒):</span>
+                <span id="current-timestamp" class="ml-2 font-mono text-lg font-bold text-blue-900">加载中...</span>
+            </div>
+            <button onclick="copyTimestamp()" class="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700">复制</button>
+        </div>
+
+        <!-- 转换表单 -->
+        <div class="space-y-4">
+            <!-- 时间戳转北京时间 -->
+            <div class="border-b pb-4 border-gray-100">
+                <label class="block text-sm font-medium text-gray-700 mb-1">时间戳 → 北京时间</label>
+                <div class="flex gap-2">
+                    <input type="number" id="input-ts" class="flex-1 p-2 border border-gray-300 rounded" placeholder="请输入10位或13位时间戳">
+                    <button onclick="tsToDate()" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900">转换</button>
+                </div>
+                <div id="res-date" class="mt-2 text-sm text-green-600 font-mono"></div>
+            </div>
+
+            <!-- 北京时间转时间戳 -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">北京时间 → 时间戳</label>
+                <div class="flex gap-2">
+                    <input type="text" id="input-date" class="flex-1 p-2 border border-gray-300 rounded" placeholder="格式如: 2026-05-24 12:00:00">
+                    <button onclick="dateToTs()" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900">转换</button>
+                </div>
+                <div id="res-ts" class="mt-2 text-sm text-green-600 font-mono"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 实时更新当前时间戳
+        setInterval(() => {
+            document.getElementById('current-timestamp').innerText = Math.floor(Date.now() / 1000);
+        }, 1000);
+
+        function copyTimestamp() {
+            const ts = document.getElementById('current-timestamp').innerText;
+            navigator.clipboard.writeText(ts);
+            alert('已复制到剪贴板！');
+        }
+
+        // 时间戳转日期
+        function tsToDate() {
+            let val = document.getElementById('input-ts').value.trim();
+            if(!val) return;
+            if(val.length === 10) val = val * 1000; // 秒转毫秒
+            const d = new Date(Number(val));
+            document.getElementById('res-date').innerText = '结果: ' + d.toLocaleString();
+        }
+
+        // 日期转时间戳
+        function dateToTs() {
+            const val = document.getElementById('input-date').value.trim();
+            if(!val) {
+                // 如果为空，默认用当前时间格式初始化
+                const now = new Date();
+                document.getElementById('input-date').value = now.getFullYear() + '-' + (now.getMonth()+1) + '-' + now.getDate() + ' ' + now.getHours() + ':' + now.getMinutes() + ':' + now.getSeconds();
+                return;
+            }
+            const ts = Date.parse(val);
+            if(isNaN(ts)) {
+                document.getElementById('res-ts').innerText = '时间格式有误！';
+            } else {
+                document.getElementById('res-ts').innerText = `秒: ${ts/1000} | 毫秒: ${ts}`;
+            }
+        }
+    </script>
+</body>
+</html>
