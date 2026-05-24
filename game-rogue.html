@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地牢肉鸽 - 极简工具箱</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 flex flex-col items-center justify-center">
+    <div class="max-w-md w-full bg-slate-800 p-5 rounded-2xl shadow-2xl border border-slate-700 text-center">
+        <div class="text-left mb-3 flex justify-between items-center">
+            <div>
+                <a href="./index.html" class="text-xs text-blue-400 hover:underline">← 返回首页</a>
+                <h2 class="text-lg font-bold text-white mt-0.5">🗺️ 随机生成地牢</h2>
+            </div>
+            <span class="text-xs bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded font-mono">血量: <span id="rogue-hp">100</span></span>
+        </div>
+        
+        <!-- 字符像素视窗 -->
+        <div id="dungeon-view" class="font-mono bg-black p-4 rounded-xl text-left tracking-widest leading-none border border-slate-900 shadow-inner min-h-[180px]">
+            <!-- 算法动态渲染 -->
+        </div>
+
+        <button onclick="generateDungeon()" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded-xl text-sm font-semibold transition-all">重构无尽世界</button>
+        <p class="text-xs text-slate-400 mt-2.5">🎮 操作：<span class="text-slate-200 font-bold">W/A/S/D</span> 走位。碰撞 <span class="text-red-400 font-bold">M</span> 触发战斗，触碰 <span class="text-amber-400 font-bold">G</span> 拾取黄金宝箱。</p>
+    </div>
+
+    <script>
+        const viewW = 20, viewH = 10;
+        let dungeon = [], player = { x: 2, y: 2, hp: 100 };
+
+        // 实体配置
+        const T_WALL = '#', T_FLOOR = '.', T_BOX = 'G', T_MONSTER = 'M';
+
+        function generateDungeon() {
+            player.hp = 100;
+            document.getElementById("rogue-hp").innerText = player.hp;
+            dungeon = [];
+            
+            // 1. 初始化矩阵围墙
+            for(let y=0; y<viewH; y++) {
+                dungeon[y] = [];
+                for(let x=0; x<viewW; x++) {
+                    if(x===0 || x===viewW-1 || y===0 || y===viewH-1) dungeon[y][x] = T_WALL;
+                    else dungeon[y][x] = Math.random() < 0.18 ? T_WALL : T_FLOOR;
+                }
+            }
+            
+            // 2. 强行疏通出生点
+            dungeon[player.y][player.x] = T_FLOOR;
+            dungeon[player.y+1][player.x] = T_FLOOR;
+
+            // 3. 散落植入生物与宝箱
+            dungeon[3][14] = T_BOX;
+            dungeon[6][8] = T_MONSTER;
+            dungeon[7][16] = T_MONSTER;
+
+            drawDungeon();
+        }
+
+        function drawDungeon() {
+            let container = document.getElementById("dungeon-view");
+            let html = "";
+
+            for(let y=0; y<viewH; y++) {
+                for(let x=0; x<viewW; x++) {
+                    if(x === player.x && y === player.y) {
+                        html += `<span class="text-emerald-400 font-bold">@</span>`;
+                    } else {
+                        let cell = dungeon[y][x];
+                        if(cell === T_WALL) html += `<span class="text-slate-700">#</span>`;
+                        else if(cell === T_BOX) html += `<span class="text-amber-400 font-bold">G</span>`;
+                        else if(cell === T_MONSTER) html += `<span class="text-red-400 font-bold">M</span>`;
+                        else html += `<span class="text-slate-500">.</span>`;
+                    }
+                }
+                html += "<br>";
+            }
+            container.innerHTML = html;
+        }
+
+        window.addEventListener("keydown", e => {
+            let nextX = player.x;
+            let nextY = player.y;
+
+            let key = e.key.toLowerCase();
+            if(key === 'w' || e.key === 'ArrowUp') nextY--;
+            if(key === 's' || e.key === 'ArrowDown') nextY++;
+            if(key === 'a' || e.key === 'ArrowLeft') nextX--;
+            if(key === 'd' || e.key === 'ArrowRight') nextX++;
+
+            // 碰撞矩阵逻辑判定
+            if(dungeon[nextY]?.[nextX] !== T_WALL) {
+                let target = dungeon[nextY][nextX];
+                if(target === T_BOX) {
+                    alert("💰 你打开了古老宝箱，获得了 50 块金条！");
+                    dungeon[nextY][nextX] = T_FLOOR;
+                } else if(target === T_MONSTER) {
+                    player.hp -= 30;
+                    document.getElementById("rogue-hp").innerText = player.hp;
+                    if(player.hp <= 0) {
+                        alert("💀 你在战斗中英勇牺牲了，地下城已崩塌。");
+                        generateDungeon();
+                        return;
+                    } else {
+                        alert("⚔️ 遭遇野蛮人！你将其斩杀，自身受到了 30 点反震伤害。");
+                        dungeon[nextY][nextX] = T_FLOOR;
+                    }
+                }
+                player.x = nextX; player.y = nextY;
+                drawDungeon();
+            }
+        });
+
+        generateDungeon();
+    </script>
+</body>
+</html>
