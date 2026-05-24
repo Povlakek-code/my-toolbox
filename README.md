@@ -11,6 +11,11 @@
   https://img.shields.io/badge/License-MIT-blue?style=for-the-badge
 </p>
 
+https://img.shields.io/badge/Platform-GitHub%20Pages-181717?style=for-the-badge&logo=github
+  https://img.shields.io/badge/Frontend-HTML5%20%2B%20CSS3%20%2B%20JavaScript-orange?style=for-the-badge&logo=html5
+  https://img.shields.io/badge/Runtime-100%25%20Static-22c55e?style=for-the-badge
+  https://img.shields.io/badge/Privacy-Local%20First-0ea5e9?style=for-the-badge
+  https://img.shields.io/badge/License-MIT-blue?style=for-the-badge
 ---
 
 ## ✨ 项目简介
