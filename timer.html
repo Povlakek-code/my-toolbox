@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>秒表与倒计时 - 极简工具箱</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen p-6 flex justify-center items-center">
+    <div class="max-w-sm w-full bg-white p-6 rounded-xl shadow-md text-center">
+        <div class="text-left mb-2">
+            <a href="./index.html" class="text-sm text-blue-600 hover:underline">← 返回首页</a>
+        </div>
+        <div class="text-4xl font-mono font-bold text-gray-900 my-6" id="timer-display">00:00.00</div>
+        <div class="flex gap-2 justify-center">
+            <button onclick="startTimer()" class="bg-green-600 text-white px-4 py-1.5 text-xs rounded">开始</button>
+            <button onclick="stopTimer()" class="bg-amber-500 text-white px-4 py-1.5 text-xs rounded">暂停</button>
+            <button onclick="resetTimer()" class="bg-gray-600 text-white px-4 py-1.5 text-xs rounded">重置</button>
+        </div>
+    </div>
+    <script>
+        let startTime = 0, elapsed = 0, timerInterval = null;
+        function startTimer() {
+            if(timerInterval) return;
+            startTime = Date.now() - elapsed;
+            timerInterval = setInterval(() => {
+                elapsed = Date.now() - startTime;
+                let m = Math.floor(elapsed / 60000).toString().padStart(2, '0');
+                let s = Math.floor((elapsed % 60000) / 1000).toString().padStart(2, '0');
+                let ms = Math.floor((elapsed % 1000) / 10).toString().padStart(2, '0');
+                document.getElementById('timer-display').innerText = `${m}:${s}.${ms}`;
+            }, 10);
+        }
+        function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
+        function resetTimer() { stopTimer(); elapsed = 0; document.getElementById('timer-display').innerText = "00:00.00"; }
+    </script>
+</body>
+</html>
