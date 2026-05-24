@@ -4,11 +4,11 @@
 > 无需后端、无需数据库、无需复杂构建流程，打开即用，适合个人收藏、日常开发、办公效率、学习练手与静态站点部署。
 
 <p align="center">
-  [!https://img.shields.io/badge/Platform-GitHub%20Pages-181717?style=for-the-badge&logo=github]
-  [!https://img.shields.io/badge/Frontend-HTML5%20%2B%20CSS3%20%2B%20JavaScript-orange?style=for-the-badge&logo=html5]
-  [!https://img.shields.io/badge/Runtime-100%25%20Static-22c55e?style=for-the-badge]
-  [!https://img.shields.io/badge/Privacy-Local%20First-0ea5e9?style=for-the-badge]
-  [!https://img.shields.io/badge/License-MIT-blue?style=for-the-badge]
+  <img src="https://img.shields.io/badge/Platform-GitHub%20Pages-181717?style=for-the-badge&logo=github" alt="Platform">
+  <img src="https://img.shields.io/badge/Frontend-HTML5%20%2B%20CSS3%20%2B%20JavaScript-orange?style=for-the-badge&logo=html5" alt="Frontend">
+  <img src="https://img.shields.io/badge/Runtime-100%25%20Static-22c55e?style=for-the-badge" alt="Runtime">
+  <img src="https://img.shields.io/badge/Privacy-Local%20First-0ea5e9?style=for-the-badge" alt="Privacy">
+  <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License">
 </p>
 
 
