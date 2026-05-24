@@ -3,409 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全能工具合集 - 极简工具箱 v3.0</title>
-    <!-- 引入 Tailwind CSS CDN -->
+    <title>瑞士军刀万能工具箱</title>
+    <!-- 引入现代化 Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        /* 针对现代极简网格的细微视觉润色 */
+        .tool-card {
+            content-visibility: auto; /* 极佳的性能优化 */
+        }
+    </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans antialiased">
+<body class="bg-slate-50 text-slate-800 min-h-screen font-sans antialiased selection:bg-indigo-500 selection:text-white">
 
-    <!-- 顶部导航栏 -->
-    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200/80 shadow-sm">
-        <div class="max-w-6xl mx-auto px-4 py-3.5 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <span class="text-2xl">⚙️</span>
-                <h1 class="text-xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent tracking-tight">全能瑞士军刀</h1>
-                <span class="text-xs bg-blue-100 text-blue-800 font-medium px-2 py-0.5 rounded-full">v3.0</span>
+    <!-- 顶部极简大标题与搜索滤镜区 -->
+    <header class="bg-white border-b border-slate-200 py-12 px-6 shadow-xs relative overflow-hidden">
+        <div class="absolute inset-0 bg-linear-to-tr from-indigo-50/20 via-transparent to-emerald-50/20 pointer-events-none"></div>
+        <div class="max-w-6xl mx-auto text-center relative z-10">
+            <h1 class="text-3xl font-black text-slate-900 tracking-tight sm:text-5xl flex items-center justify-center gap-3">
+                <span class="animate-pulse">🛠️</span> 瑞士军刀万能工具箱
+            </h1>
+            <p class="mt-4 text-sm sm:text-base text-slate-500 max-w-xl mx-auto font-medium">
+                纯前端架构 · 零外部依赖 · 即开即玩。将日常高频开发工具与硬核 Canvas 独立游戏打包带走。
+            </p>
+            
+            <!-- 拼音/多词极速全能搜索引擎 -->
+            <div class="mt-8 max-w-lg mx-auto relative group">
+                <input type="text" id="global-search" oninput="filterCards()" placeholder="输入名字、拼音简写(如 'bssxl')或功能关键词..." 
+                       class="w-full px-5 py-3.5 pl-12 bg-slate-50 border border-slate-300 rounded-2xl text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all shadow-xs group-hover:border-slate-400">
+                <span class="absolute left-4 top-4.5 text-slate-400 text-base pointer-events-none transition-colors group-focus-within:text-indigo-500">🔍</span>
+                <button onclick="clearSearch()" id="clear-btn" class="hidden absolute right-4 top-4 text-xs font-semibold text-slate-400 hover:text-slate-600 bg-slate-200 hover:bg-slate-300 px-2 py-0.5 rounded-md transition-colors">清除</button>
             </div>
-            <a href="https://github.com" target="_blank" class="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-1">
-                GitHub 💻
-            </a>
         </div>
     </header>
 
-    <!-- 主体容器 -->
-    <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-8">
-        
-        <!-- 欢迎/聚合搜索区域 -->
-        <div class="max-w-2xl mx-auto text-center mb-10">
-            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight sm:text-4xl">超级全能瑞士军刀</h2>
-            <p class="mt-2 text-slate-500 text-sm">本地纯静态驱动，绝不上传任何隐私数据，轻量、丝滑、极速。</p>
+    <!-- 分类标签过滤器控制区 -->
+    <nav class="max-w-6xl mx-auto mt-8 px-6 flex justify-center space-x-2">
+        <button onclick="switchTab('all')" id="tab-all" class="tab-btn px-5 py-2.5 text-xs font-bold rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-600/20 transition-all cursor-pointer">全部组件</button>
+        <button onclick="switchTab('tools')" id="tab-tools" class="tab-btn px-5 py-2.5 text-xs font-bold rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer">🧮 日常工具</button>
+        <button onclick="switchTab('arcade')" id="tab-arcade" class="tab-btn px-5 py-2.5 text-xs font-bold rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer">🕹️ 经典街机</button>
+        <button onclick="switchTab('hardcore')" id="tab-hardcore" class="tab-btn px-5 py-2.5 text-xs font-bold rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer">⚔️ 硬核大作</button>
+    </nav>
+
+    <!-- 主体网格控制布局 -->
+    <main class="max-w-6xl mx-auto px-6 py-10">
+        <div id="tools-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             
-            <!-- 搜索框 -->
-            <div class="mt-6 relative shadow-sm rounded-xl">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 text-lg">
-                    🔍
+            <!-- ================= 日常与开发工具部分 ================= -->
+            <div class="tool-card bg-white rounded-2xl border border-slate-200 p-6 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300" data-cat="tools" data-keywords="json格式化 jsongsh kf gj 开发工具 美化 校验 tree">
+                <div class="flex items-start justify-between">
+                    <span class="text-2xl p-2 bg-blue-50 rounded-xl">⚙️</span>
+                    <span class="text-[10px] bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">日常工具</span>
                 </div>
-                <input type="text" id="search-input" oninput="filterTools()" 
-                       class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm" 
-                       placeholder="输入工具名称、关键字、拼音（如: json, base64, uuid, diff, 白板）...">
+                <h3 class="mt-4 text-base font-bold text-slate-900">JSON 格式化解析</h3>
+                <p class="mt-1 text-slate-500 text-xs leading-relaxed line-clamp-2">提供单文件高频 JSON 压缩、美化、语法校验及可折叠层级的树状图实时预览视图。</p>
+                <a href="./tools/tool-json.html" class="mt-5 block text-center bg-slate-50 hover:bg-blue-600 text-slate-700 hover:text-white text-xs font-bold py-2.5 rounded-xl border border-slate-100 hover:border-blue-600 transition-all duration-200">激活控制台</a>
             </div>
+
+            <!-- ================= 经典街机娱乐部分 ================= -->
+            <div class="tool-card bg-white rounded-2xl border border-slate-200 p-6 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300" data-cat="arcade" data-keywords="吃豆人 cdr jdyx 经典游戏 街机 迷宫 pacman">
+                <div class="flex items-start justify-between">
+                    <span class="text-2xl p-2 bg-amber-50 rounded-xl">🕹️</span>
+                    <span class="text-[10px] bg-amber-50 text-amber-700 font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">经典街机</span>
+                </div>
+                <h3 class="mt-4 text-base font-bold text-slate-900">经典吃豆人</h3>
+                <p class="mt-1 text-slate-500 text-xs leading-relaxed line-clamp-2">原汁原味街机走位复刻。在错综复杂的网格里吃掉全部豆子，运用走位躲避红色幽灵追捕。</p>
+                <a href="./games/game-pacman.html" class="mt-5 block text-center bg-slate-50 hover:bg-amber-500 text-slate-700 hover:text-white text-xs font-bold py-2.5 rounded-xl border border-slate-100 hover:border-amber-500 transition-all duration-200">开始摸鱼</a>
+            </div>
+
+            <div class="tool-card bg-white rounded-2xl border border-slate-200 p-6 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300" data-cat="arcade" data-keywords="飞翔的小鸟 fxdxn 像素鸟 xx yl 休闲 娱乐 物理 游戏 flappy bird">
+                <div class="flex items-start justify-between">
+                    <span class="text-2xl p-2 bg-sky-50 rounded-xl">🐦</span>
+                    <span class="text-[10px] bg-sky-50 text-sky-700 font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">经典街机</span>
+                </div>
+                <h3 class="mt-4 text-base font-bold text-slate-900">飞翔的小鸟</h3>
+                <p class="mt-1 text-slate-500 text-xs leading-relaxed line-clamp-2">极其具有魔性与挑战性的像素鸟扑翼冒险，重力感应实时捕捉，支持保存最高分记录。</p>
+                <a href="./games/game-bird.html" class="mt-5 block text-center bg-slate-50 hover:bg-sky-500 text-slate-700 hover:text-white text-xs font-bold py-2.5 rounded-xl border border-slate-100 hover:border-sky-500 transition-all duration-200">启动引擎</a>
+            </div>
+
+            <div class="tool-card bg-white rounded-2xl border border-slate-200 p-6 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300" data-cat="arcade" data-keywords="弹球大作战 dqdzz srdb 双人弹球 乒乓 街机 游戏 pong">
+                <div class="flex items-start justify-between">
+                    <span class="text-2xl p-2 bg-slate-100 rounded-xl">🏓</span>
+                    <span class="text-[10px] bg-slate-200 text-slate-700 font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">经典街机</span>
+                </div>
+                <h3 class="mt-4 text-base font-bold text-slate-900">弹球大作战</h3>
+                <p class="mt-1 text-slate-500 text-xs leading-relaxed line-clamp-2">电子游戏始祖 PONG 像素级致敬，搭载平滑的鼠标轨道跟随与极简人工智能对抗逻辑。</p>
+                <a href="./games/game-pong.html" class="mt-5 block text-center bg-slate-50 hover:bg-slate-700 text-slate-700 hover:text-white text-xs font-bold py-2.5 rounded-xl border border-slate-100 hover:border-slate-700 transition-all duration-200">即刻切磋</a>
+            </div>
+
+            <!-- ================= 高级与硬核独立大作 ================= -->
+            <div class="tool-card bg-white rounded-2xl border border-slate-200 p-6 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300" data-cat="hardcore" data-keywords="星际雷电 xjld fxsj 飞机射击 沙罗曼蛇 弹幕 独立游戏 shooter 粒子">
+                <div class="flex items-start justify-between">
+                    <span class="text-2xl p-2 bg-rose-50 rounded-xl">🚀</span>
+                    <span class="text-[10px] bg-rose-50 text-rose-700 font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">硬核大作</span>
+                </div>
+                <h3 class="mt-4 text-base font-bold text-slate-900">星际雷电弹幕机</h3>
+                <p class="mt-1 text-slate-500 text-xs leading-relaxed line-clamp-2">硬核纵版雷电射击独立大作。包含无限波次敌机流、高频全自动激光与粒子碎裂爆炸残影。</p>
+                <a href="./games/game-shooter.html" class="mt-5 block text-center bg-slate-900 hover:bg-rose-600 text-white text-xs font-bold py-2.5 rounded-xl transition-all duration-200">立刻升空</a>
+            </div>
+
+            <div class="tool-card bg-white rounded-2xl border border-slate-200 p-6 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300" data-cat="hardcore" data-keywords="高级打砖块 gjdzk djdl 道具掉落 碰撞物理 街机 休闲 brick">
+                <div class="flex items-start justify-between">
+                    <span class="text-2xl p-2 bg-emerald-50 rounded-xl">🧱</span>
+                    <span class="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">硬核大作</span>
+                </div>
+                <h3 class="mt-4 text-base font-bold text-slate-900">高级道具打砖块</h3>
+                <p class="mt-1 text-slate-500 text-xs leading-relaxed line-clamp-2">融入碰撞刚体反射机制。击飞彩色矩阵方块有高概率掉落加长磁吸板等绿色增益道具。</p>
+                <a href="./games/game-brick.html" class="mt-5 block text-center bg-slate-50 hover:bg-emerald-600 text-slate-700 hover:text-white text-xs font-bold py-2.5 rounded-xl border border-slate-100 hover:border-emerald-600 transition-all duration-200">击碎壁垒</a>
+            </div>
+
+            <div class="tool-card bg-white rounded-2xl border border-slate-200 p-6 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300" data-cat="hardcore" data-keywords="宝石三消乐 bssxl kxxxw 开心消消乐 矩阵算法 消除 烧脑 combo match3">
+                <div class="flex items-start justify-between">
+                    <span class="text-2xl p-2 bg-purple-50 rounded-xl">💎</span>
+                    <span class="text-[10px] bg-purple-50 text-purple-700 font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">硬核大作</span>
+                </div>
+                <h3 class="mt-4 text-base font-bold text-slate-900">宝石三消益智乐</h3>
+                <p class="mt-1 text-slate-500 text-xs leading-relaxed line-clamp-2">基于核心滑块坐标交换算法，完整搭载方块跌落、空位补全机制以及连续 Combo 连锁连击判定。</p>
+                <a href="./games/game-match3.html" class="mt-5 block text-center bg-slate-50 hover:bg-purple-600 text-slate-700 hover:text-white text-xs font-bold py-2.5 rounded-xl border border-slate-100 hover:border-purple-600 transition-all duration-200">启动连击</a>
+            </div>
+
+            <div class="tool-card bg-white rounded-2xl border border-slate-200 p-6 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300" data-cat="hardcore" data-keywords="3d迷宫 mxsymg sx_ty 射线投影 德军总部 第一人称 独立游戏 3d maze">
+                <div class="flex items-start justify-between">
+                    <span class="text-2xl p-2 bg-zinc-900 rounded-xl text-white">👁️</span>
+                    <span class="text-[10px] bg-zinc-900 text-zinc-300 font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">硬核大作</span>
+                </div>
+                <h3 class="mt-4 text-base font-bold text-slate-900">3D 射线透视迷宫</h3>
+                <p class="mt-1 text-slate-500 text-xs leading-relaxed line-clamp-2">致敬经典。利用 Raycasting 射线投影算法在 2D 画布上渲染纯 3D 视角，体验极客浪漫。</p>
+                <a href="./games/game-3d-maze.html" class="mt-5 block text-center bg-slate-950 hover:bg-zinc-800 text-white text-xs font-bold py-2.5 rounded-xl transition-all duration-200">切入空间</a>
+            </div>
+
+            <div class="tool-card bg-white rounded-2xl border border-slate-200 p-6 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300" data-cat="hardcore" data-keywords="英雄自走棋 yxzzq zzq 战棋 人工智能 羁绊 排兵布阵 autochess">
+                <div class="flex items-start justify-between">
+                    <span class="text-2xl p-2 bg-amber-50 rounded-xl">⚔️</span>
+                    <span class="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">硬核大作</span>
+                </div>
+                <h3 class="mt-4 text-base font-bold text-slate-900">自走棋：英雄战境</h3>
+                <p class="mt-1 text-slate-500 text-xs leading-relaxed line-clamp-2">你来运营排兵布阵！构建狂战士与大法师军团，搭载自动路径锁敌与动态即时交火算法。</p>
+                <a href="./games/game-autochess.html" class="mt-5 block text-center bg-slate-50 hover:bg-amber-600 text-slate-700 hover:text-white text-xs font-bold py-2.5 rounded-xl border border-slate-100 hover:border-amber-600 transition-all duration-200">排兵布阵</a>
+            </div>
+
+            <div class="tool-card bg-white rounded-2xl border border-slate-200 p-6 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300" data-cat="hardcore" data-keywords="地牢肉鸽 dlrg xszl 随机生成 回合制 像素 战争迷雾 探索 roguelike">
+                <div class="flex items-start justify-between">
+                    <span class="text-2xl p-2 bg-emerald-50 rounded-xl">🗺️</span>
+                    <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">硬核大作</span>
+                </div>
+                <h3 class="mt-4 text-base font-bold text-slate-900">像素地牢 Roguelike</h3>
+                <p class="mt-1 text-slate-500 text-xs leading-relaxed line-clamp-2">采用程序级分形图算法，每次重置都将重组生成无尽地下城，包含开宝箱与回合制遭遇战。</p>
+                <a href="./games/game-rogue.html" class="mt-5 block text-center bg-slate-50 hover:bg-emerald-600 text-slate-700 hover:text-white text-xs font-bold py-2.5 rounded-xl border border-slate-100 hover:border-emerald-600 transition-all duration-200">探索未知</a>
+            </div>
+
         </div>
 
-        <!-- 分类导航 Tab 切换 -->
-        <div class="flex justify-center border-b border-slate-200 mb-8 overflow-x-auto">
-            <nav class="flex space-x-2 sm:space-x-4 px-2" aria-label="Tabs">
-                <button onclick="switchCategory('all', this)" class="tab-btn border-blue-600 text-blue-600 border-b-2 font-bold px-4 py-2.5 text-sm whitespace-nowrap cursor-pointer">
-                    全部工具 (<span id="count-all">0</span>)
-                </button>
-                <button onclick="switchCategory('dev', this)" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 border-b-2 font-medium px-4 py-2.5 text-sm whitespace-nowrap cursor-pointer">
-                    👨‍💻 开发调试 (<span id="count-dev">0</span>)
-                </button>
-                <button onclick="switchCategory('text', this)" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 border-b-2 font-medium px-4 py-2.5 text-sm whitespace-nowrap cursor-pointer">
-                    🔤 文本处理 (<span id="count-text">0</span>)
-                </button>
-                <button onclick="switchCategory('daily', this)" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 border-b-2 font-medium px-4 py-2.5 text-sm whitespace-nowrap cursor-pointer">
-                    🎈 日常工具 (<span id="count-daily">0</span>)
-                </button>
-            </nav>
-        </div>
-
-        <!-- 空状态提示 -->
-        <div id="empty-state" class="hidden text-center py-12 text-slate-400">
-            <span class="text-4xl block mb-2">💨</span>
-            没有找到匹配的工具，换个关键词试试吧
-        </div>
-
-        <!-- 工具卡片主网格 -->
-        <div id="tools-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            
-            <!-- ====== 1. 开发调试类 (dev) ====== -->
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="dev" data-keywords="时间戳转换 timestamp unix epoch sjc">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-blue-50 rounded-lg">🕒</span>
-                    <span class="text-xs bg-blue-50 text-blue-700 font-medium px-2 py-0.5 rounded">开发调试</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">时间戳转换</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">支持 Unix 时间戳与标准北京时间的相互转换，包含实时秒表功能。</p>
-                <a href="./timestamp.html" class="mt-4 block text-center bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="dev" data-keywords="json 格式化 美化 校验 压缩 minify format gsh">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-blue-50 rounded-lg">📊</span>
-                    <span class="text-xs bg-blue-50 text-blue-700 font-medium px-2 py-0.5 rounded">开发调试</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">JSON 格式化与压缩</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">一键美化、缩进、校验复杂的 JSON 报文，或压缩流数据为单行字符串。</p>
-                <a href="./json-tools.html" class="mt-4 block text-center bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="dev" data-keywords="base64 编码 解码 text btoa atob 加密 jm bm">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-blue-50 rounded-lg">🔒</span>
-                    <span class="text-xs bg-blue-50 text-blue-700 font-medium px-2 py-0.5 rounded">开发调试</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">Base64 编解码</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">高速本地文本与 Base64 规范互转，采用安全内核，无缝支持中文字符。</p>
-                <a href="./base64-tools.html" class="mt-4 block text-center bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="dev" data-keywords="url 编码 解码 encode decode uri 参数 乱码">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-blue-50 rounded-lg">🔗</span>
-                    <span class="text-xs bg-blue-50 text-blue-700 font-medium px-2 py-0.5 rounded">开发调试</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">URL 编解码</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">快速对网址中附带的参数、特殊符号或特殊中文字符进行转义与还原。</p>
-                <a href="./url-tools.html" class="mt-4 block text-center bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="dev" data-keywords="cron 表达式 定时任务 crontab 运维 linux dsrw">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-blue-50 rounded-lg">⏰</span>
-                    <span class="text-xs bg-blue-50 text-blue-700 font-medium px-2 py-0.5 rounded">开发调试</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">Cron 表达式助手</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">提供高频定时任务表达式一键预设，并支持标准的 5 位 Linux 规则通俗解读。</p>
-                <a href="./cron-tools.html" class="mt-4 block text-center bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="dev" data-keywords="哈希 hash md5 sha1 sha256 sha512 散列 密码 校验 xl">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-blue-50 rounded-lg">🛡️</span>
-                    <span class="text-xs bg-blue-50 text-blue-700 font-medium px-2 py-0.5 rounded">开发调试</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">哈希/散列生成器</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">纯前端依赖安全矩阵，提供文本数据的高速 MD5 与多阶 SHA 密文生成。</p>
-                <a href="./hash-tools.html" class="mt-4 block text-center bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="dev" data-keywords="进制转换 2进制 8进制 10进制 16进制 binary hex jzzh">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-blue-50 rounded-lg">🔢</span>
-                    <span class="text-xs bg-blue-50 text-blue-700 font-medium px-2 py-0.5 rounded">开发调试</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">多进制转换器</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">底层数据 2进制、8进制、10进制与16进制的级联转换，联动更新。</p>
-                <a href="./binary-tools.html" class="mt-4 block text-center bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="dev" data-keywords="图片转base64 base64 image datauri 图标 内联 tp">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-blue-50 rounded-lg">🖼️</span>
-                    <span class="text-xs bg-blue-50 text-blue-700 font-medium px-2 py-0.5 rounded">开发调试</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">图片转 Base64 编码</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">本地读取任意体积的图片或矢量图，一键输出前端可直用的 DataURI 级联长字符串。</p>
-                <a href="./image-to-base64.html" class="mt-4 block text-center bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="dev" data-keywords="正则表达式 regex test 匹配 校验 提取 规则 zzbda">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-blue-50 rounded-lg">🧪</span>
-                    <span class="text-xs bg-blue-50 text-blue-700 font-medium px-2 py-0.5 rounded">开发调试</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">正则表达式测试器</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">实时输入匹配逻辑与规则修饰符，本地匹配多行文本并直观列出高亮断言。</p>
-                <a href="./regex-tools.html" class="mt-4 block text-center bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="dev" data-keywords="useragent ua 解析 浏览器内核 系统版本 环境 模拟 jx">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-blue-50 rounded-lg">🔍</span>
-                    <span class="text-xs bg-blue-50 text-blue-700 font-medium px-2 py-0.5 rounded">开发调试</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">User-Agent 解析器</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">深度剖析或读取当前环境的 UA 链，秒级识别操作系统底座及当前的网关内核。</p>
-                <a href="./ua-tools.html" class="mt-4 block text-center bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="dev" data-keywords="摩尔斯电码 morse code 密码 加密 解密 信号 mesdm">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-blue-50 rounded-lg">📟</span>
-                    <span class="text-xs bg-blue-50 text-blue-700 font-medium px-2 py-0.5 rounded">开发调试</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">摩尔斯电码互转助手</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">支持全英文字符、数字与标准摩尔斯密文互转，一键编解码。</p>
-                <a href="./morse-code.html" class="mt-4 block text-center bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="dev" data-keywords="html实体 html-entities 转义 字符 编码 源码 标签 zy">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-blue-50 rounded-lg">🧬</span>
-                    <span class="text-xs bg-blue-50 text-blue-700 font-medium px-2 py-0.5 rounded">开发调试</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">HTML 实体转义助手</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">转义页面源码符号为富文本安全实体，有效防止富文本渲染串行。</p>
-                <a href="./html-entities.html" class="mt-4 block text-center bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="dev" data-keywords="uuid uuid-generator guid 随机生成 唯一标识 数据库 sc">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-blue-50 rounded-lg">🆔</span>
-                    <span class="text-xs bg-blue-50 text-blue-700 font-medium px-2 py-0.5 rounded">开发调试</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">批量 UUID 生成器</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">纯前端安全加密核心机制，高速本地输出多组唯一的 UUID 散列值。</p>
-                <a href="./uuid-generator.html" class="mt-4 block text-center bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="dev" data-keywords="csv json 格式转换 excel 数据互转 数组 hz">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-blue-50 rounded-lg">📊</span>
-                    <span class="text-xs bg-blue-50 text-blue-700 font-medium px-2 py-0.5 rounded">开发调试</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">CSV 与 JSON 互转</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">打通表格纯文本与开发标准 JSON 对象的通道，一键双向安全互转。</p>
-                <a href="./csv-json.html" class="mt-4 block text-center bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-
-            <!-- ====== 2. 文本处理类 (text) ====== -->
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="text" data-keywords="文本处理 字数统计 大小写转换 去空格 wbcl">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-purple-50 rounded-lg">🔤</span>
-                    <span class="text-xs bg-purple-50 text-purple-700 font-medium px-2 py-0.5 rounded">文本处理</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">日常文本处理</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">包含实时行数与字符计数、英文字母大小写快捷转换以及两端多余空格剔除。</p>
-                <a href="./text-tools.html" class="mt-4 block text-center bg-slate-50 hover:bg-purple-50 text-slate-700 hover:text-purple-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="text" data-keywords="markdown 预览 md 实时渲染 markdown-preview yl">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-purple-50 rounded-lg">📝</span>
-                    <span class="text-xs bg-purple-50 text-purple-700 font-medium px-2 py-0.5 rounded">文本处理</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">Markdown 预览器</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">极致清晰的双栏分屏排版，左侧实时录入 Markdown，右侧高速同步呈现渲染效果。</p>
-                <a href="./markdown-tools.html" class="mt-4 block text-center bg-slate-50 hover:bg-purple-50 text-slate-700 hover:text-purple-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="text" data-keywords="趣味文本 特殊字体 气泡字 删除线 花样排版 qw">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-purple-50 rounded-lg">✨</span>
-                    <span class="text-xs bg-purple-50 text-purple-700 font-medium px-2 py-0.5 rounded">文本处理</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">花样特殊文本生成</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">一键为普通文本附加上划线、删除线、气泡艺术样式或者交错波浪大小写。</p>
-                <a href="./case-generator.html" class="mt-4 block text-center bg-slate-50 hover:bg-purple-50 text-slate-700 hover:text-purple-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="text" data-keywords="文本对比 text-diff 差异 找茬 代码对比 db">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-purple-50 rounded-lg">⚖️</span>
-                    <span class="text-xs bg-purple-50 text-purple-700 font-medium px-2 py-0.5 rounded">文本处理</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">文本差异对比工具</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">清晰高亮展示两段文本的逐行增加或删减变动，规避人工肉眼筛查漏项。</p>
-                <a href="./text-diff.html" class="mt-4 block text-center bg-slate-50 hover:bg-purple-50 text-slate-700 hover:text-purple-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="text" data-keywords="文本清洗 去重 排序 字母正向 列表整理 qc">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-purple-50 rounded-lg">🧹</span>
-                    <span class="text-xs bg-purple-50 text-purple-700 font-medium px-2 py-0.5 rounded">文本处理</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">文本去重与清洗器</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">智能精简剔除行级重复字段内容，并且可自由选择按照首字母顺序重新升序排序。</p>
-                <a href="./text-cleaner.html" class="mt-4 block text-center bg-slate-50 hover:bg-purple-50 text-slate-700 hover:text-purple-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-
-            <!-- ====== 3. 日常工具类 (daily) ====== -->
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="daily" data-keywords="随机数 强密码生成器 password generator mm">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-emerald-50 rounded-lg">🎲</span>
-                    <span class="text-xs bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded">日常工具</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">强密码生成器</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">高度自定义密码要素（数字、符号、大小写），规避密码雷同，安全度极高。</p>
-                <a href="./password-generator.html" class="mt-4 block text-center bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="daily" data-keywords="二维码 qrcode 生成 网址转二维码 ewm">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-emerald-50 rounded-lg">📱</span>
-                    <span class="text-xs bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded">日常工具</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">二维码生成器</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">快速将特定网络地址、个人名片或纯文本实时编译成二维码，支持无损下载。</p>
-                <a href="./qrcode-tools.html" class="mt-4 block text-center bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="daily" data-keywords="图片压缩 格式转换 jpg png webp ys">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-emerald-50 rounded-lg">🖼️</span>
-                    <span class="text-xs bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded">日常工具</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">图片压缩与转换</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">彻底在浏览器端离线裁剪和重组图像数据，极速调节原图体积并在主流格式间无损导出。</p>
-                <a href="./image-tools.html" class="mt-4 block text-center bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="daily" data-keywords="颜色转换 color hex rgb hsl ys">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-emerald-50 rounded-lg">🎨</span>
-                    <span class="text-xs bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded">日常工具</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">颜色转换与拾取器</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">可视化网页端标准色卡拾取，精准在 HEX十六进制、RGB、HSL 等主流配色标准间换算。</p>
-                <a href="./color-tools.html" class="mt-4 block text-center bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="daily" data-keywords="人民币大写 金额转换 财务 报销 发票 rmb dx">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-emerald-50 rounded-lg">💰</span>
-                    <span class="text-xs bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded">日常工具</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">人民币大写转换</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">贴近国内财务与行政流程设计，一秒将普通数字形式金额精准翻译为财务专用大写。</p>
-                <a href="./rmb-tools.html" class="mt-4 block text-center bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="daily" data-keywords="计算器 科学计算 数学 极简 算账 calc jsq">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-emerald-50 rounded-lg">🧮</span>
-                    <span class="text-xs bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded">日常工具</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">全前端计算面板</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">提供纯粹快速的常规运算、开根、乘方功能，极简设计，算账清爽。</p>
-                <a href="./calc-tools.html" class="mt-4 block text-center bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="daily" data-keywords="极简白板 画板 whiteboard 涂鸦 演示 bb">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-emerald-50 rounded-lg">🎨</span>
-                    <span class="text-xs bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded">日常工具</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">极简画布协同白板</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">随时调出纯净画布进行流程勾勒与想法涂鸦，包含调色盘及笔触粗细映射。</p>
-                <a href="./whiteboard.html" class="mt-4 block text-center bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="daily" data-keywords="全球时区 timezone 时间转换 纽约 伦敦 sq">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-emerald-50 rounded-lg">🌐</span>
-                    <span class="text-xs bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded">日常工具</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">全球多时区对照盘</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">同步联锁输出多个国际主流商务时区的实时对照，出差旅游协作利器。</p>
-                <a href="./timezone-converter.html" class="mt-4 block text-center bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="daily" data-keywords="单位换算 长度 重量 厘米 英寸 dw">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-emerald-50 rounded-lg">📐</span>
-                    <span class="text-xs bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded">日常工具</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">常用单位换算矩阵</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">包含多类国际、英制长度和日常质量标准换算，数值联动映射改变。</p>
-                <a href="./unit-converter.html" class="mt-4 block text-center bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
-            <div class="tool-card bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" data-cat="daily" data-keywords="秒表 倒计时 计时器 timer mb">
-                <div class="flex items-start justify-between">
-                    <span class="text-2xl p-2 bg-emerald-50 rounded-lg">⏱️</span>
-                    <span class="text-xs bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded">日常工具</span>
-                </div>
-                <h3 class="mt-4 text-base font-bold text-slate-900">毫秒跑表与倒计时</h3>
-                <p class="mt-1 text-slate-500 text-xs line-clamp-2">高精度全静态本地时间驱动，支持临时中断挂起、复位，轻量实用。</p>
-                <a href="./timer.html" class="mt-4 block text-center bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 text-xs font-semibold py-2 rounded-lg border border-slate-100 transition-colors">打开工具</a>
-            </div>
-
+        <!-- 检索落空时的缺省优雅提示 -->
+        <div id="empty-state" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300 max-w-sm mx-auto">
+            <span class="text-4xl">🛸</span>
+            <p class="mt-3 text-sm font-semibold text-slate-800">空空如也...</p>
+            <p class="mt-1 text-xs text-slate-400 max-w-[240px] mx-auto">未检索到匹配的模块或独立游戏，检查一下有没有拼写错误？</p>
         </div>
     </main>
 
-    <!-- 页脚 -->
-    <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-400">
-        © 2026 Powered by GitHub Pages · 极简全静态微生态
+    <!-- 极简页脚 -->
+    <footer class="text-center pb-12 mt-6 text-xs text-slate-400 font-medium">
+        © 2026 瑞士军刀万能独立工具箱 · 开箱即用
     </footer>
 
-    <!-- 逻辑引擎脚本 -->
+    <!-- 核心多维控制引擎 JS 代码 -->
     <script>
-        let currentCategory = 'all';
+        let activeCategory = 'all';
 
-        // 初始化加载：计算各个分类的实时静态徽章总数
-        window.onload = function() {
-            const allCards = document.querySelectorAll('.tool-card');
-            const devCards = document.querySelectorAll('.tool-card[data-cat="dev"]');
-            const textCards = document.querySelectorAll('.tool-card[data-cat="text"]');
-            const dailyCards = document.querySelectorAll('.tool-card[data-cat="daily"]');
-
-            document.getElementById('count-all').innerText = allCards.length;
-            document.getElementById('count-dev').innerText = devCards.length;
-            document.getElementById('count-text').innerText = textCards.length;
-            document.getElementById('count-daily').innerText = dailyCards.length;
-        };
-
-        // 核心过滤联动逻辑 (组合搜索 + 分类 Tabs)
-        function filterTools() {
-            const searchVal = document.getElementById('search-input').value.toLowerCase().trim();
+        // 智能矩阵过滤引擎
+        function filterCards() {
+            const searchInput = document.getElementById('global-search');
+            const query = searchInput.value.toLowerCase().trim();
+            const clearBtn = document.getElementById('clear-btn');
             const cards = document.querySelectorAll('.tool-card');
             let visibleCount = 0;
 
+            // 控制清除按钮的显示隐藏
+            if (query.length > 0) clearBtn.classList.remove('hidden');
+            else clearBtn.classList.add('hidden');
+
             cards.forEach(card => {
-                const keywords = card.getAttribute('data-keywords') || '';
-                const title = card.querySelector('h3').innerText.toLowerCase();
-                const desc = card.querySelector('p').innerText.toLowerCase();
                 const cardCat = card.getAttribute('data-cat');
+                const keywords = card.getAttribute('data-keywords').toLowerCase();
+                const cardTitle = card.querySelector('h3').innerText.toLowerCase();
+                
+                // 多条件交集计算
+                const matchTab = (activeCategory === 'all' || cardCat === activeCategory);
+                const matchQuery = !query || cardTitle.includes(query) || keywords.includes(query);
 
-                // 规则：必须同时命中当前高亮的 Tab 分类且文字检索命中的卡片才会显示
-                const matchesSearch = !searchVal || keywords.includes(searchVal) || title.includes(searchVal) || desc.includes(searchVal);
-                const matchesCategory = (currentCategory === 'all' || cardCat === currentCategory);
-
-                if (matchesSearch && matchesCategory) {
+                if (matchTab && matchQuery) {
                     card.classList.remove('hidden');
                     visibleCount++;
                 } else {
@@ -413,29 +199,35 @@
                 }
             });
 
-            // 处理没有搜索到任何东西的空状态
+            // 空白回滚捕获
             const emptyState = document.getElementById('empty-state');
-            if (visibleCount === 0) {
-                emptyState.classList.remove('hidden');
-            } else {
-                emptyState.classList.add('hidden');
-            }
+            if (visibleCount === 0) emptyState.classList.remove('hidden');
+            else emptyState.classList.add('hidden');
         }
 
-        // 切换分类 Tab 逻辑
-        function switchCategory(cat, btnElement) {
-            currentCategory = cat;
+        // 清空输入框处理器
+        function clearSearch() {
+            const searchInput = document.getElementById('global-search');
+            searchInput.value = '';
+            filterCards();
+            searchInput.focus();
+        }
 
-            // 样式重置与高亮激活切换
+        // 顶层 Tab 分类状态切换机
+        function switchTab(targetCat) {
+            activeCategory = targetCat;
+            
+            // 重置所有按钮组件的视觉样式
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('border-blue-600', 'text-blue-600', 'font-bold');
-                btn.classList.add('border-transparent', 'text-slate-500', 'font-medium');
+                btn.className = "tab-btn px-5 py-2.5 text-xs font-bold rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer";
             });
-            btnElement.classList.remove('border-transparent', 'text-slate-500', 'font-medium');
-            btnElement.classList.add('border-blue-600', 'text-blue-600', 'font-bold');
+            
+            // 为当前被点击激活的 Tab 注入高亮效果
+            const currentActiveBtn = document.getElementById(`tab-${targetCat}`);
+            currentActiveBtn.className = "tab-btn px-5 py-2.5 text-xs font-bold rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-600/20 transition-all cursor-pointer";
 
-            // 触发联动搜索筛选
-            filterTools();
+            // 触发增量刷洗过滤器
+            filterCards();
         }
     </script>
 </body>
