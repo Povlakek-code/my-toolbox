@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飞翔的小鸟 - 极简工具箱</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen p-6 flex flex-col items-center">
+    <div class="max-w-md w-full bg-white p-6 rounded-xl shadow-md text-center">
+        <div class="text-left mb-4">
+            <a href="./index.html" class="text-sm text-blue-600 hover:underline">← 返回首页</a>
+            <h2 class="text-xl font-bold mt-1">🐦 飞翔的小鸟</h2>
+        </div>
+        <div class="mb-4 font-mono text-sm text-left bg-slate-50 p-2 rounded border flex justify-between">
+            <span>得分: <span id="bird-score" class="font-bold text-sky-600">0</span></span>
+            <span class="text-xs text-slate-400">按【空格键】或点击画面飞翔</span>
+        </div>
+        <div class="bg-sky-200 rounded-lg overflow-hidden inline-block p-1 shadow-inner cursor-pointer" onclick="flap()">
+            <canvas id="birdCanvas" width="320" height="400" class="outline-none"></canvas>
+        </div>
+        <button onclick="resetBirdGame()" class="w-full mt-4 bg-sky-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-sky-600">开始新一局</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("birdCanvas");
+        const ctx = canvas.getContext("2d");
+
+        let birdY, velocity, score, pipes, gameLoop;
+        const gravity = 0.4;
+        const jump = -6;
+        let isGameOver = true;
+
+        function resetBirdGame() {
+            birdY = 150;
+            velocity = 0;
+            score = 0;
+            pipes = [];
+            isGameOver = false;
+            document.getElementById("bird-score").innerText = score;
+            if(gameLoop) cancelAnimationFrame(gameLoop);
+            updateBird();
+        }
+
+        function flap() {
+            if (!isGameOver) velocity = jump;
+        }
+
+        document.addEventListener("keydown", e => {
+            if (e.code === "Space") { e.preventDefault(); flap(); }
+        });
+
+        function updateBird() {
+            if (isGameOver) return;
+
+            velocity += gravity;
+            birdY += velocity;
+
+            // 地面与天空碰撞
+            if (birdY > canvas.height - 15 || birdY < 0) {
+                endBirdGame();
+                return;
+            }
+
+            // 管道逻辑
+            if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 120) {
+                let gap = 110;
+                let topHeight = Math.floor(Math.random() * (canvas.height - gap - 100)) + 30;
+                pipes.push({ x: canvas.width, top: topHeight, bottom: canvas.height - topHeight - gap });
+            }
+
+            pipes.forEach(pipe => {
+                pipe.x -= 2;
+
+                // 碰撞检测
+                if (pipe.x < 40 && pipe.x + 40 > 20) {
+                    if (birdY < pipe.top || birdY > canvas.height - pipe.bottom) {
+                        endBirdGame();
+                    }
+                }
+
+                // 计分
+                if (pipe.x === 20) {
+                    score++;
+                    document.getElementById("bird-score").innerText = score;
+                }
+            });
+
+            pipes = pipes.filter(pipe => pipe.x > -40);
+
+            // 渲染绘图
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制背景（简易蓝天绿地）
+            ctx.fillStyle = "#bae6fd";
+            ctx.fillRect(0,0, canvas.width, canvas.height);
+
+            // 绘制管道
+            ctx.fillStyle = "#22c55e";
+            pipes.forEach(pipe => {
+                ctx.fillRect(pipe.x, 0, 40, pipe.top);
+                ctx.fillRect(pipe.x, canvas.height - pipe.bottom, 40, pipe.bottom);
+            });
+
+            // 绘制小鸟
+            ctx.beginPath();
+            ctx.arc(30, birdY, 12, 0, 2 * Math.PI);
+            ctx.fillStyle = "#eab308";
+            ctx.fill();
+
+            gameLoop = requestAnimationFrame(updateBird);
+        }
+
+        function endBirdGame() {
+            isGameOver = true;
+            alert(`小鸟坠落了！最终得分：${score}`);
+        }
+    </script>
+</body>
+</html>

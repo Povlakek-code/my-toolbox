@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User-Agent 解析 - 极简工具箱</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen p-6">
+    <div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-md">
+        <div class="mb-4">
+            <a href="./index.html" class="text-sm text-blue-600 hover:underline">← 返回首页</a>
+            <h2 class="text-2xl font-bold mt-2">🔍 User-Agent 浏览器环境解析</h2>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">输入 UA 字符串:</label>
+                <textarea id="ua-input" rows="3" class="w-full p-2 border border-gray-300 rounded-lg font-mono text-xs" placeholder="粘贴你需要解析的 User-Agent..."></textarea>
+            </div>
+
+            <div class="flex gap-2">
+                <button onclick="parseUA()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 flex-1">开始解析</button>
+                <button onclick="getCurrentUA()" class="bg-gray-800 text-white px-4 py-2 rounded text-sm hover:bg-gray-900">读取我的当前UA</button>
+            </div>
+
+            <!-- 解析面板 -->
+            <div class="bg-gray-50 p-4 rounded-lg space-y-2 text-sm border">
+                <div><span class="text-gray-400 font-medium">内核/引擎:</span> <span id="ua-engine" class="font-mono font-bold"></span></div>
+                <div><span class="text-gray-400 font-medium">操作系统:</span> <span id="ua-os" class="font-mono font-bold"></span></div>
+                <div><span class="text-gray-400 font-medium">是否移动端:</span> <span id="ua-mobile" class="font-mono font-bold"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function getCurrentUA() {
+            document.getElementById('ua-input').value = navigator.userAgent;
+            parseUA();
+        }
+
+        function parseUA() {
+            const ua = document.getElementById('ua-input').value;
+            let os = "未知系统";
+            let engine = "未知内核";
+            let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua) ? "📱 移动端 (Mobile)" : "💻 桌面端 (Desktop)";
+
+            if (ua.includes("Windows")) os = "Windows OS";
+            else if (ua.includes("Macintosh")) os = "macOS";
+            else if (ua.includes("iPhone") || ua.includes("iPad")) os = "iOS";
+            else if (ua.includes("Android")) os = "Android";
+            else if (ua.includes("Linux")) os = "Linux";
+
+            if (ua.includes("AppleWebKit")) engine = "WebKit (Chrome/Safari)";
+            else if (ua.includes("Gecko") && !ua.includes("WebKit")) engine = "Gecko (Firefox)";
+            else if (ua.includes("Trident")) engine = "Trident (IE)";
+
+            document.getElementById('ua-os').innerText = os;
+            document.getElementById('ua-engine').innerText = engine;
+            document.getElementById('ua-mobile').innerText = isMobile;
+        }
+
+        window.onload = getCurrentUA;
+    </script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自走棋：英雄战境 - 极简工具箱</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen p-4 flex flex-col items-center justify-center">
+    <div class="max-w-md w-full bg-white p-5 rounded-2xl shadow-xl border text-center">
+        <div class="text-left mb-3 flex justify-between items-center">
+            <div>
+                <a href="./index.html" class="text-sm text-blue-600 hover:underline">← 返回首页</a>
+                <h2 class="text-lg font-bold text-slate-900 mt-0.5">⚔️ 英雄自走棋</h2>
+            </div>
+            <div class="text-sm font-bold text-amber-500">💰 金币: <span id="chess-gold">10</span></div>
+        </div>
+
+        <div class="bg-slate-900 rounded-xl overflow-hidden inline-block p-1">
+            <canvas id="chessCanvas" width="360" height="260"></canvas>
+        </div>
+
+        <!-- 招募商店区 -->
+        <div class="grid grid-cols-2 gap-2 mt-3">
+            <button onclick="buyHero('warrior')" class="bg-amber-50 hover:bg-amber-100 border border-amber-200 p-2 rounded-xl text-left text-xs transition-colors">
+                <div class="font-bold text-amber-800">⚔️ 购买战士 (3金)</div>
+                <div class="text-slate-500">近战高血量，自带嘲讽</div>
+            </button>
+            <button onclick="buyHero('mage')" class="bg-purple-50 hover:bg-purple-100 border border-purple-200 p-2 rounded-xl text-left text-xs transition-colors">
+                <div class="font-bold text-purple-800">🔮 购买法师 (4金)</div>
+                <div class="text-slate-500">远程爆发，全屏雷击</div>
+            </button>
+        </div>
+
+        <button onclick="startChessBattle()" class="w-full mt-4 bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-xl font-medium transition-all shadow-md">
+            进入战斗交锋
+        </button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("chessCanvas");
+        const ctx = canvas.getContext("2d");
+
+        let gold = 10, heros = [], enemies = [], chessLoop = null, isFighting = false;
+
+        function buyHero(type) {
+            if (isFighting) return;
+            if (type === 'warrior' && gold >= 3) {
+                gold -= 3;
+                heros.push({ x: 40, y: 50 + heros.length * 50, type: 'warrior', hp: 200, maxHp: 200, range: 30, atk: 15, color: '#3b82f6' });
+            } else if (type === 'mage' && gold >= 4) {
+                gold -= 4;
+                heros.push({ x: 40, y: 50 + heros.length * 50, type: 'mage', hp: 100, maxHp: 100, range: 140, atk: 35, color: '#a855f7' });
+            }
+            document.getElementById("chess-gold").innerText = gold;
+            drawBoard();
+        }
+
+        function initEnemies() {
+            enemies = [
+                { x: 300, y: 70, type: 'monster', hp: 150, maxHp: 150, range: 40, atk: 12, color: '#ef4444' },
+                { x: 300, y: 170, type: 'monster', hp: 150, maxHp: 150, range: 40, atk: 12, color: '#ef4444' }
+            ];
+        }
+
+        function drawBoard() {
+            ctx.fillStyle = "#0f172a"; ctx.fillRect(0,0, canvas.width, canvas.height);
+            // 棋盘格模拟线
+            ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 1;
+            for(let i=0; i<canvas.width; i+=40) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,canvas.height); ctx.stroke(); }
+            
+            // 绘制角色主体
+            [...heros, ...enemies].forEach(u => {
+                ctx.fillStyle = u.color;
+                ctx.beginPath(); ctx.arc(u.x, u.y, 12, 0, Math.PI*2); ctx.fill();
+                // 血条
+                ctx.fillStyle = "#22c55e";
+                ctx.fillRect(u.x - 12, u.y - 20, 24 * (u.hp / u.maxHp), 3);
+            });
+        }
+
+        function runBattleAI() {
+            if (!isFighting) return;
+
+            // 己方人工智能寻敌
+            heros.forEach(h => {
+                if (enemies.length === 0 || h.hp <= 0) return;
+                let target = enemies[0]; // 锁定首位敌人
+                let dist = Math.hypot(target.x - h.x, target.y - h.y);
+
+                if (dist > h.range) {
+                    h.x += (target.x - h.x) / dist * 1.5;
+                    h.y += (target.y - h.y) / dist * 1.5;
+                } else if (Math.random() < 0.15) {
+                    target.hp -= h.atk; // 造成伤害
+                    // 弹道特效
+                    ctx.strokeStyle = "#fbbf24"; ctx.beginPath(); ctx.moveTo(h.x, h.y); ctx.lineTo(target.x, target.y); ctx.stroke();
+                }
+            });
+
+            // 敌方人工智能寻敌
+            enemies.forEach(e => {
+                if (heros.length === 0 || e.hp <= 0) return;
+                let target = heros.filter(h => h.hp > 0)[0];
+                if (!target) return;
+                let dist = Math.hypot(target.x - e.x, target.y - e.y);
+
+                if (dist > e.range) {
+                    e.x += (target.x - e.x) / dist * 1.2;
+                    e.y += (target.y - e.y) / dist * 1.2;
+                } else if (Math.random() < 0.15) {
+                    target.hp -= e.atk;
+                }
+            });
+
+            // 过滤死亡实体
+            heros = heros.filter(h => h.hp > 0);
+            enemies = enemies.filter(e => e.hp > 0);
+
+            drawBoard();
+
+            // 胜负状态判定机
+            if (enemies.length === 0) {
+                clearInterval(chessLoop); isFighting = false; gold += 6;
+                document.getElementById("chess-gold").innerText = gold;
+                alert("⚔️ 胜利！获得本轮清缴奖金：6金币");
+            } else if (heros.length === 0) {
+                clearInterval(chessLoop); isFighting = false; gold = 10;
+                document.getElementById("chess-gold").innerText = gold;
+                alert("💀 败北！全军覆没，已重置初始薪酬。");
+            }
+        }
+
+        function startChessBattle() {
+            if (heros.length === 0) { alert("请先在招募商店购买雇佣兵！"); return; }
+            if (isFighting) return;
+            isFighting = true;
+            initEnemies();
+            if(chessLoop) clearInterval(chessLoop);
+            chessLoop = setInterval(runBattleAI, 1000 / 30);
+        }
+
+        initEnemies(); drawBoard();
+    </script>
+</body>
+</html>

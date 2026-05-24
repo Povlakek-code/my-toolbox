@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D射线迷宫 - 极简工具箱</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 flex flex-col items-center justify-center">
+    <div class="max-w-md w-full bg-slate-800 p-5 rounded-2xl shadow-2xl border border-slate-700 text-center">
+        <div class="text-left mb-3 flex justify-between items-center">
+            <div>
+                <a href="./index.html" class="text-xs text-blue-400 hover:underline">← 返回首页</a>
+                <h2 class="text-lg font-bold text-white mt-0.5">👁️ 3D 射线迷宫</h2>
+            </div>
+            <span class="text-xs font-mono bg-red-950 px-2 py-0.5 rounded text-red-400 border border-red-900">Raycasting 引擎</span>
+        </div>
+        
+        <div class="bg-black rounded-xl overflow-hidden inline-block p-1 border border-slate-700">
+            <canvas id="raycanvas" width="360" height="240"></canvas>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 mt-4 text-left text-xs text-slate-400 font-mono bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <div>前/后: <span class="text-slate-200 font-bold">W / S</span></div>
+            <div>视角旋转: <span class="text-slate-200 font-bold">A / D</span></div>
+            <div class="col-span-2 text-emerald-400 mt-1">🎯 目标：在伪3D视界中寻找出口吧！</div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("raycanvas");
+        const ctx = canvas.getContext("2d");
+
+        // 1=墙壁, 0=通道
+        const map = [
+            [1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,0,0,1],
+            [1,0,1,1,0,1,0,1],
+            [1,0,1,0,0,1,0,1],
+            [1,0,1,0,1,1,0,1],
+            [1,0,0,0,0,0,0,1],
+            [1,1,1,1,1,1,1,1]
+        ];
+        const mapW = 8, mapH = 7;
+
+        let pX = 2.5, pY = 2.5; // 玩家初始化格子坐标
+        let pAngle = 0;         // 视角弧度
+        const FOV = Math.PI / 3; // 60度视野
+
+        let keys = {};
+        window.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
+        window.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
+
+        function updateMovement() {
+            let moveSpeed = 0.04;
+            let rotSpeed = 0.03;
+
+            if (keys["a"]) pAngle -= rotSpeed;
+            if (keys["d"]) pAngle += rotSpeed;
+            
+            let dx = Math.cos(pAngle) * moveSpeed;
+            let dy = Math.sin(pAngle) * moveSpeed;
+
+            if (keys["w"]) {
+                if (map[Math.floor(pY)][Math.floor(pX + dx * 2)] === 0) pX += dx;
+                if (map[Math.floor(pY + dy * 2)][Math.floor(pX)] === 0) pY += dy;
+            }
+            if (keys["s"]) {
+                if (map[Math.floor(pY)][Math.floor(pX - dx * 2)] === 0) pX -= dx;
+                if (map[Math.floor(pY - dy * 2)][Math.floor(pX)] === 0) pY -= dy;
+            }
+        }
+
+        function renderRaycasting() {
+            updateMovement();
+            ctx.clearRect(0,0, canvas.width, canvas.height);
+
+            // 绘制天花板和地面
+            ctx.fillStyle = "#1e293b"; ctx.fillRect(0, 0, canvas.width, canvas.height/2);
+            ctx.fillStyle = "#0f172a"; ctx.fillRect(0, canvas.height/2, canvas.width, canvas.height/2);
+
+            // 逐像素扫描线发射射线
+            const numRays = canvas.width;
+            for (let i = 0; i < numRays; i++) {
+                let rayAngle = (pAngle - FOV/2) + (i / numRays) * FOV;
+                let distance = 0;
+                let hitWall = false;
+
+                let cos = Math.cos(rayAngle);
+                let sin = Math.sin(rayAngle);
+
+                while (!hitWall && distance < 16) {
+                    distance += 0.05;
+                    let checkX = Math.floor(pX + cos * distance);
+                    let checkY = Math.floor(pY + sin * distance);
+
+                    if (checkX < 0 || checkX >= mapW || checkY < 0 || checkY >= mapH) {
+                        hitWall = true; distance = 16;
+                    } else if (map[checkY][checkX] > 0) {
+                        hitWall = true;
+                    }
+                }
+
+                // 修正鱼眼镜头畸变
+                let correctedDist = distance * Math.cos(rayAngle - pAngle);
+                let wallHeight = Math.min(canvas.height, (canvas.height / correctedDist));
+
+                // 模拟光线衰减深度阴影
+                let shade = Math.floor(200 - (correctedDist * 12));
+                if (shade < 30) shade = 30;
+
+                ctx.strokeStyle = `rgb(${shade}, ${shade + 10}, ${shade + 25})`;
+                ctx.beginPath();
+                ctx.moveTo(i, (canvas.height - wallHeight) / 2);
+                ctx.lineTo(i, (canvas.height + wallHeight) / 2);
+                ctx.stroke();
+            }
+            requestAnimationFrame(renderRaycasting);
+        }
+
+        // 自动启动引擎
+        renderRaycasting();
+    </script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>双人弹球 - 极简工具箱</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen p-6 flex flex-col items-center">
+    <div class="max-w-md w-full bg-white p-6 rounded-xl shadow-md text-center">
+        <div class="text-left mb-4">
+            <a href="./index.html" class="text-sm text-blue-600 hover:underline">← 返回首页</a>
+            <h2 class="text-xl font-bold mt-1">🏓 弹球大作战</h2>
+        </div>
+        <div class="mb-4 font-mono text-base bg-slate-900 text-white p-2 rounded flex justify-around">
+            <div>玩家: <span id="player-score" class="text-green-400 font-bold">0</span></div>
+            <div>电脑: <span id="ai-score" class="text-red-400 font-bold">0</span></div>
+        </div>
+        <div class="bg-slate-900 rounded-lg overflow-hidden inline-block p-1 shadow-inner cursor-none" id="pong-area">
+            <canvas id="pongCanvas" width="360" height="260" class="outline-none"></canvas>
+        </div>
+        <button onclick="startPong()" class="w-full mt-4 bg-slate-800 text-white py-2 rounded-lg text-sm font-medium hover:bg-slate-900">开始游戏</button>
+        <p class="text-xs text-slate-400 mt-3">💡 提示：在中间黑框内【上下移动鼠标】控制左侧挡板</p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("pongCanvas");
+        const ctx = canvas.getContext("2d");
+
+        let playerY = 100, aiY = 100;
+        let ballX = 180, ballY = 130;
+        let ballSpeedX = 3, ballSpeedY = 2;
+        let pScore = 0, aScore = 0;
+        let pongLoop = null;
+
+        const paddleHeight = 50, paddleWidth = 10, ballSize = 6;
+
+        document.getElementById("pong-area").addEventListener("mousemove", e => {
+            const rect = canvas.getBoundingClientRect();
+            playerY = e.clientY - rect.top - paddleHeight / 2;
+        });
+
+        function resetBall() {
+            ballX = canvas.width / 2;
+            ballY = canvas.height / 2;
+            ballSpeedX = -ballSpeedX;
+        }
+
+        function updatePong() {
+            // 移动小球
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
+
+            // 顶底墙壁反弹
+            if (ballY <= 0 || ballY >= canvas.height) ballSpeedY = -ballSpeedY;
+
+            // 电脑AI简易追踪
+            if (aiY + paddleHeight / 2 < ballY - 10) aiY += 2.5;
+            else if (aiY + paddleHeight / 2 > ballY + 10) aiY -= 2.5;
+
+            // 左挡板（玩家）碰撞
+            if (ballX <= paddleWidth + 5) {
+                if (ballY > playerY && ballY < playerY + paddleHeight) {
+                    ballSpeedX = -ballSpeedX;
+                    // 加点角度扰动
+                    ballSpeedY = (ballY - (playerY + paddleHeight/2)) * 0.2;
+                } else if (ballX < 0) {
+                    aScore++;
+                    document.getElementById("ai-score").innerText = aScore;
+                    resetBall();
+                }
+            }
+
+            // 右挡板（AI）碰撞
+            if (ballX >= canvas.width - paddleWidth - 5) {
+                if (ballY > aiY && ballY < aiY + paddleHeight) {
+                    ballSpeedX = -ballSpeedX;
+                } else if (ballX > canvas.width) {
+                    pScore++;
+                    document.getElementById("player-score").innerText = pScore;
+                    resetBall();
+                }
+            }
+
+            // 绘图渲染
+            ctx.fillStyle = "#0f172a";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(5, playerY, paddleWidth, paddleHeight); // 玩家
+            ctx.fillRect(canvas.width - paddleWidth - 5, aiY, paddleWidth, paddleHeight); // AI
+            
+            // 画球
+            ctx.beginPath();
+            ctx.arc(ballX, ballY, ballSize, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function startPong() {
+            pScore = 0; aScore = 0;
+            document.getElementById("player-score").innerText = 0;
+            document.getElementById("ai-score").innerText = 0;
+            if (pongLoop) clearInterval(pongLoop);
+            pongLoop = setInterval(updatePong, 1000 / 60); // 60帧帧率
+        }
+    </script>
+</body>
+</html>

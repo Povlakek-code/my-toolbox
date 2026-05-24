@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文本处理工具 - 极简工具箱</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen p-6">
+    <div class="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-md">
+        <div class="mb-4">
+            <a href="./index.html" class="text-sm text-blue-600 hover:underline">← 返回首页</a>
+            <h2 class="text-2xl font-bold mt-2">🔤 文本处理工具</h2>
+        </div>
+
+        <textarea id="text-input" rows="8" class="w-full p-3 border border-gray-300 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="请在这里输入或粘贴你的文本..."></textarea>
+        
+        <!-- 统计栏 -->
+        <div class="mt-2 text-sm text-gray-500 flex gap-4">
+            <span>字符数: <strong id="char-count" class="text-gray-800">0</strong></span>
+            <span>行数: <strong id="line-count" class="text-gray-800">0</strong></span>
+        </div>
+
+        <!-- 动作按钮 -->
+        <div class="mt-4 flex flex-wrap gap-2">
+            <button onclick="handleText('upper')" class="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700">全大写</button>
+            <button onclick="handleText('lower')" class="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700">全小写</button>
+            <button onclick="handleText('trim')" class="bg-gray-600 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-700">去除两端空格</button>
+            <button onclick="handleText('clear')" class="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600 ml-auto">清空</button>
+        </div>
+    </div>
+
+    <script>
+        const tx = document.getElementById('text-input');
+        
+        // 监听输入计算字数
+        tx.addEventListener('input', () => {
+            const val = tx.value;
+            document.getElementById('char-count').innerText = val.length;
+            document.getElementById('line-count').innerText = val === "" ? 0 : val.split('\n').length;
+        });
+
+        function handleText(action) {
+            if(action === 'upper') tx.value = tx.value.toUpperCase();
+            if(action === 'lower') tx.value = tx.value.toLowerCase();
+            if(action === 'trim') tx.value = tx.value.trim();
+            if(action === 'clear') tx.value = '';
+            
+            // 触发一次统计更新
+            tx.dispatchEvent(new Event('input'));
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>摩尔斯电码互转 - 极简工具箱</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen p-6">
+    <div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-md">
+        <div class="mb-4">
+            <a href="./index.html" class="text-sm text-blue-600 hover:underline">← 返回首页</a>
+            <h2 class="text-2xl font-bold mt-2">📟 摩尔斯电码转换器</h2>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 mb-1">普通文本 (支持英文数字):</label>
+                <textarea id="morse-text" rows="3" class="w-full p-2 border border-gray-200 uppercase font-mono text-sm rounded-lg" placeholder="INPUT TEXT HERE">SOS</textarea>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="encodeMorse()" class="flex-1 bg-blue-600 text-white py-2 rounded text-sm font-medium hover:bg-blue-700">👇 编码为摩尔斯</button>
+                <button onclick="decodeMorse()" class="flex-1 bg-gray-800 text-white py-2 rounded text-sm font-medium hover:bg-gray-900">☝️ 解码为文本</button>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 mb-1">摩尔斯电码 (空格分隔):</label>
+                <textarea id="morse-code-val" rows="3" class="w-full p-2 border border-gray-200 font-mono text-sm rounded-lg" placeholder="... --- ..."></textarea>
+            </div>
+        </div>
+    </div>
+    <script>
+        const charToMorse = {'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-', 'Y': '-.--', 'Z': '--..', '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----', ' ': '/'};
+        const morseToChar = Object.fromEntries(Object.entries(charToMorse).map(([k, v]) => [v, k]));
+
+        function encodeMorse() {
+            const txt = document.getElementById('morse-text').value.toUpperCase();
+            const res = txt.split('').map(c => charToMorse[c] || '').join(' ');
+            document.getElementById('morse-code-val').value = res.trim();
+        }
+        function decodeMorse() {
+            const code = document.getElementById('morse-code-val').value.trim();
+            const res = code.split(' ').map(c => morseToChar[c] || '').join('');
+            document.getElementById('morse-text').value = res;
+        }
+    </script>
+</body>
+</html>

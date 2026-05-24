@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>趣味文本花样生成 - 极简工具箱</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen p-6">
+    <div class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-md">
+        <div class="mb-4">
+            <a href="./index.html" class="text-sm text-blue-600 hover:underline">← 返回首页</a>
+            <h2 class="text-2xl font-bold mt-2">✨ 特殊文本花样生成器</h2>
+        </div>
+
+        <div class="space-y-4">
+            <input type="text" id="special-input" value="Hello GitHub" class="w-full p-2.5 border border-gray-300 rounded-lg text-sm" placeholder="输入要特殊化处理的英文字符串..." oninput="generateFancyText()">
+            
+            <div class="space-y-2 text-sm font-mono">
+                <div class="p-2 bg-gray-50 rounded border flex justify-between items-center">
+                    <div><span class="text-xs text-gray-400 block">错落波浪大小写：</span><span id="t-sponge"></span></div>
+                    <button onclick="copyTxt('t-sponge')" class="text-xs bg-gray-200 px-2 py-1 rounded">复制</button>
+                </div>
+                <div class="p-2 bg-gray-50 rounded border flex justify-between items-center">
+                    <div><span class="text-xs text-gray-400 block">气泡框艺术字 (仅英文字母)：</span><span id="t-bubble"></span></div>
+                    <button onclick="copyTxt('t-bubble')" class="text-xs bg-gray-200 px-2 py-1 rounded">复制</button>
+                </div>
+                <div class="p-2 bg-gray-50 rounded border flex justify-between items-center">
+                    <div><span class="text-xs text-gray-400 block">带中划线修饰：</span><span id="t-strike"></span></div>
+                    <button onclick="copyTxt('t-strike')" class="text-xs bg-gray-200 px-2 py-1 rounded">复制</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function generateFancyText() {
+            const val = document.getElementById('special-input').value;
+            
+            // 1. 波浪大小写
+            let sponge = val.split('').map((c, i) => i % 2 === 0 ? c.toLowerCase() : c.toUpperCase()).join('');
+            document.getElementById('t-sponge').innerText = sponge;
+
+            // 2. 气泡字
+            const bubbleMap = {
+                'a':'ⓐ','b':'ⓑ','c':'ⓒ','d':'ⓓ','e':'ⓔ','f':'ⓕ','g':'ⓖ','h':'ⓗ','i':'ⓘ','j':'ⓙ','k':'ⓚ','l':'ⓛ','m':'ⓜ','n':'ⓝ','o':'ⓞ','p':'ⓟ','q':'ⓠ','r':'ⓡ','s':'ⓢ','t':'ⓣ','u':'ⓤ','v':'ⓥ','w':'ⓦ','x':'ⓧ','y':'ⓨ','z':'ⓩ',
+                'A':'Ⓐ','B':'Ⓑ','C':'Ⓒ','D':'Ⓓ','E':'Ⓔ','F':'𒿲','G':'𒿳','H':'Ⓗ','I':'Ⓘ','J':'Ⓙ','K':'Ⓚ','L':'Ⓛ','M':'Ⓜ','N':'Ⓝ','O':'Ⓞ','P':'Ⓟ','Q':'Ⓠ','R':'Ⓡ','S':'Ⓢ','T':'Ⓣ','U':'Ⓤ','V':'Ⓥ','W':'Ⓦ','X':'Ⓧ','Y':'Ⓨ','Z':'Ⓩ'
+            };
+            let bubble = val.split('').map(c => bubbleMap[c] || c).join('');
+            document.getElementById('t-bubble').innerText = bubble;
+
+            // 3. 中划线文本
+            let strike = val.split('').map(c => c + '\u0336').join('');
+            document.getElementById('t-strike').innerText = strike;
+        }
+
+        function copyTxt(id) {
+            navigator.clipboard.writeText(document.getElementById(id).innerText);
+            alert('复制样式文字成功！');
+        }
+        window.onload = generateFancyText;
+    </script>
+</body>
+</html>

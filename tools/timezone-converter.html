@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全球时区转换 - 极简工具箱</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen p-6">
+    <div class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-md">
+        <div class="mb-4">
+            <a href="./index.html" class="text-sm text-blue-600 hover:underline">← 返回首页</a>
+            <h2 class="text-2xl font-bold mt-2">🌐 全球多时区对照盘</h2>
+        </div>
+        <div class="space-y-4">
+            <div class="p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                <label class="block text-xs font-bold text-blue-600 mb-1">🇨🇳 北京时间 (基准 - UTC+8)</label>
+                <input type="datetime-local" id="base-time" class="w-full p-2 bg-white border border-gray-200 rounded font-mono text-sm" oninput="updateTimezones()">
+            </div>
+            <div class="space-y-2 font-mono text-sm">
+                <div class="p-3 bg-gray-50 rounded border flex justify-between">
+                    <span>🇺🇸 纽约 (EST / UTC-5)</span>
+                    <span id="tz-ny" class="font-bold text-gray-700"></span>
+                </div>
+                <div class="p-3 bg-gray-50 rounded border flex justify-between">
+                    <span>🇬🇧 伦敦 (GMT / UTC+0)</span>
+                    <span id="tz-ld" class="font-bold text-gray-700"></span>
+                </div>
+                <div class="p-3 bg-gray-50 rounded border flex justify-between">
+                    <span>🇯🇵 东京 (JST / UTC+9)</span>
+                    <span id="tz-tk" class="font-bold text-gray-700"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function updateTimezones() {
+            const baseVal = document.getElementById('base-time').value;
+            if(!baseVal) return;
+            const date = new Date(baseVal);
+            
+            const formatOptions = (offset) => {
+                const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
+                const targetDate = new Date(utc + (3600000 * offset));
+                return targetDate.toLocaleString('zh-CN', { hour12: false });
+            };
+
+            document.getElementById('tz-ny').innerText = formatOptions(-5);
+            document.getElementById('tz-ld').innerText = formatOptions(0);
+            document.getElementById('tz-tk').innerText = formatOptions(9);
+        }
+        window.onload = () => {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('base-time').value = now.toISOString().slice(0,16);
+            updateTimezones();
+        };
+    </script>
+</body>
+</html>

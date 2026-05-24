@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>经典吃豆人 - 极简工具箱</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen p-6 flex flex-col items-center">
+    <div class="max-w-md w-full bg-white p-6 rounded-xl shadow-md text-center">
+        <div class="text-left mb-4">
+            <a href="./index.html" class="text-sm text-blue-600 hover:underline">← 返回首页</a>
+            <h2 class="text-xl font-bold mt-1">🕹️ 经典吃豆人</h2>
+        </div>
+        <div class="flex justify-between items-center mb-4 font-mono text-sm">
+            <div>得分: <span id="pacman-score" class="font-bold text-amber-500">0</span></div>
+            <div id="game-status" class="text-slate-400">准备就绪</div>
+        </div>
+        <div class="bg-slate-950 rounded-lg overflow-hidden inline-block p-1 shadow-inner">
+            <canvas id="pacmanCanvas" width="380" height="380" class="bg-slate-950 outline-none"></canvas>
+        </div>
+        <button onclick="initPacman()" class="w-full mt-4 bg-amber-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-amber-600">开始 / 重置游戏</button>
+        <p class="text-xs text-slate-400 mt-3">💡 提示：使用键盘方向键控制吃豆人，别被红幽灵抓到！</p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("pacmanCanvas");
+        const ctx = canvas.getContext("2d");
+        const tileSize = 20;
+        const gridWidth = canvas.width / tileSize;
+
+        // 1=墙壁, 0=豆子
+        let map = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+            [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1],
+            [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,0,1],
+            [1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
+            [1,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,1],
+            [1,1,1,1,0,1,0,0,0,0,0,0,0,1,0,1,1,1,1],
+            [1,1,1,1,0,1,0,1,1,0,1,1,0,1,0,1,1,1,1],
+            [1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,1],
+            [1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,0,1],
+            [1,0,0,1,0,1,0,0,0,0,0,0,0,1,0,1,0,0,1],
+            [1,1,0,1,0,1,0,1,1,1,1,1,0,1,0,1,0,1,1],
+            [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+            [1,0,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ];
+
+        let currentMap = [];
+        let pacman, ghost, score, gameInterval;
+
+        class Player {
+            constructor() {
+                this.x = 1; this.y = 1;
+                this.dirX = 0; this.dirY = 0;
+                this.nextDirX = 0; this.nextDirY = 0;
+            }
+            move() {
+                // 尝试转向
+                if (currentMap[this.y + this.nextDirY]?.[this.x + this.nextDirX] !== 1) {
+                    this.dirX = this.nextDirX; this.dirY = this.nextDirY;
+                }
+                // 推进位置
+                if (currentMap[this.y + this.dirY]?.[this.x + this.dirX] !== 1) {
+                    this.x += this.dirX; this.y += this.dirY;
+                }
+                // 吃豆
+                if (currentMap[this.y][this.x] === 0) {
+                    currentMap[this.y][this.x] = 2; // 2表示已吃
+                    score += 10;
+                    document.getElementById("pacman-score").innerText = score;
+                }
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x * tileSize + tileSize/2, this.y * tileSize + tileSize/2, tileSize/2 - 2, 0.2 * Math.PI, 1.8 * Math.PI);
+                ctx.lineTo(this.x * tileSize + tileSize/2, this.y * tileSize + tileSize/2);
+                ctx.fillStyle = "#fbbf24";
+                ctx.fill();
+            }
+        }
+
+        class Ghost {
+            constructor() { this.x = 9; this.y = 10; }
+            move() {
+                const dirs = [{x:0, y:-1}, {x:0, y:1}, {x:-1, y:0}, {x:1, y:0}];
+                // 随机选择一个不撞墙的方向
+                let validDirs = dirs.filter(d => currentMap[this.y + d.y]?.[this.x + d.x] !== 1);
+                if (validDirs.length > 0) {
+                    let chosen = validDirs[Math.floor(Math.random() * validDirs.length)];
+                    this.x += chosen.x; this.y += chosen.y;
+                }
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x * tileSize + tileSize/2, this.y * tileSize + tileSize/2 - 2, tileSize/2 - 2, Math.PI, 0, false);
+                ctx.lineTo(this.x * tileSize + tileSize - 2, this.y * tileSize + tileSize);
+                ctx.lineTo(this.x * tileSize + 2, this.y * tileSize + tileSize);
+                ctx.fillStyle = "#ef4444";
+                ctx.fill();
+            }
+        }
+
+        function drawMap() {
+            for (let r = 0; r < currentMap.length; r++) {
+                for (let c = 0; c < currentMap[r].length; c++) {
+                    if (currentMap[r][c] === 1) {
+                        ctx.fillStyle = "#1e40af";
+                        ctx.fillRect(c * tileSize, r * tileSize, tileSize, tileSize);
+                    } else if (currentMap[r][c] === 0) {
+                        ctx.beginPath();
+                        ctx.arc(c * tileSize + tileSize/2, r * tileSize + tileSize/2, 3, 0, 2 * Math.PI);
+                        ctx.fillStyle = "#fcd34d";
+                        ctx.fill();
+                    }
+                }
+            }
+        }
+
+        function updateGame() {
+            pacman.move();
+            ghost.move();
+
+            // 碰撞检测
+            if (pacman.x === ghost.x && pacman.y === ghost.y) {
+                clearInterval(gameInterval);
+                document.getElementById("game-status").innerText = "游戏结束！";
+                alert(`被幽灵抓到了！最终得分：${score}`);
+                return;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawMap();
+            pacman.draw();
+            ghost.draw();
+        }
+
+        function initPacman() {
+            clearInterval(gameInterval);
+            currentMap = JSON.parse(JSON.stringify(map));
+            score = 0;
+            document.getElementById("pacman-score").innerText = score;
+            document.getElementById("game-status").innerText = "进行中...";
+            pacman = new Player();
+            ghost = new Ghost();
+            gameInterval = setInterval(updateGame, 250);
+        }
+
+        document.addEventListener("keydown", e => {
+            if (e.keyCode === 37) { pacman.nextDirX = -1; pacman.nextDirY = 0; }
+            if (e.keyCode === 38) { pacman.nextDirX = 0; pacman.nextDirY = -1; }
+            if (e.keyCode === 39) { pacman.nextDirX = 1; pacman.nextDirY = 0; }
+            if (e.keyCode === 40) { pacman.nextDirX = 0; pacman.nextDirY = 1; }
+        });
+    </script>
+</body>
+</html>
