@@ -1,4 +1,4 @@
-# 🛠️ 全能瑞士军刀 - 极简纯静态工具箱
+# 🛠️ 全能工具合集 - 极简纯静态工具箱
 
 [![Platform: HTML5/Vanilla JS](https://img.shields.io/badge/Platform-HTML5%20%2F%20JS-orange?style=flat-square)](javascript:void(0))
 [![Style: Tailwind CSS v4](https://img.shields.io/badge/Style-Tailwind%20CSS%20v4-38bdf8?style=flat-square)](https://tailwindcss.com)
