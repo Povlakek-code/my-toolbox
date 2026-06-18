@@ -1033,4 +1033,11 @@
   });
 
   // expose manual bomb on double click for convenience
-  canvasWrap.addEventListener
+  canvasWrap.addEventListener('dblclick', triggerBomb);
+
+  // nice default state
+  overlay.style.display = 'flex';
+})();
+</script>
+</body>
+</html>
