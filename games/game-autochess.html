@@ -3,39 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>自走棋：英雄战境 - 强化版</title>
+  <title>自走棋：英雄战境 - 完整强化版</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <style>
     body {
       background:
-        radial-gradient(circle at top, rgba(148,163,184,.25), transparent 32%),
+        radial-gradient(circle at top, rgba(148,163,184,.22), transparent 34%),
         linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
     }
-    canvas {
-      image-rendering: auto;
-      display: block;
-    }
-    .glass {
-      backdrop-filter: blur(12px);
-      background: rgba(255,255,255,.82);
-    }
-    .unit-card {
+    canvas { display:block; image-rendering:auto; }
+    .glass { backdrop-filter: blur(12px); background: rgba(255,255,255,.84); }
+    .card {
       transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
     }
-    .unit-card:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 25px rgba(15, 23, 42, .08);
+    .card:hover { transform: translateY(-1px); box-shadow: 0 10px 26px rgba(15,23,42,.08); }
+    .chip {
+      display:inline-flex; align-items:center; gap:.35rem;
+      padding:.2rem .55rem; border-radius:999px; font-size:12px;
+      border:1px solid rgba(148,163,184,.35); background: rgba(255,255,255,.75);
     }
   </style>
 </head>
 <body class="min-h-screen p-4 md:p-6 text-slate-800">
-  <div class="max-w-6xl mx-auto grid lg:grid-cols-[1.35fr_0.95fr] gap-4">
+  <div class="max-w-7xl mx-auto grid xl:grid-cols-[1.32fr_0.92fr] gap-5">
     <div class="glass border border-white/70 rounded-3xl shadow-xl p-4 md:p-5">
-      <div class="flex items-center justify-between gap-3 mb-4">
+      <div class="flex items-start justify-between gap-4 mb-4">
         <div>
           <a href="./index.html" class="text-sm text-blue-600 hover:underline">← 返回首页</a>
-          <h1 class="text-2xl md:text-3xl font-black text-slate-900 mt-1">⚔️ 英雄自走棋：战境升级版</h1>
-          <p class="text-sm text-slate-500 mt-1">招募、布阵、升级、开战，尽量撑到更高回合。</p>
+          <h1 class="text-2xl md:text-3xl font-black text-slate-900 mt-1">⚔️ 英雄自走棋：战境强化版</h1>
+          <p class="text-sm text-slate-500 mt-1">拖拽布阵、装备搭配、羁绊组合、Boss 关卡、自动存档。</p>
         </div>
         <div class="text-right">
           <div class="text-sm text-slate-500">城防</div>
@@ -43,120 +39,195 @@
         </div>
       </div>
 
-      <div class="grid md:grid-cols-[1fr_auto] gap-4 items-start">
-        <div class="relative mx-auto">
+      <div class="grid gap-4">
+        <div class="relative mx-auto w-full max-w-[920px]">
           <div class="rounded-3xl bg-slate-950 p-2 shadow-2xl border border-slate-800">
-            <canvas id="gameCanvas" width="820" height="500" class="rounded-2xl bg-slate-900"></canvas>
+            <canvas id="gameCanvas" width="920" height="560" class="rounded-2xl bg-slate-900"></canvas>
           </div>
           <div id="battleBanner" class="absolute top-4 left-1/2 -translate-x-1/2 hidden px-4 py-2 rounded-full text-white font-bold shadow-lg"></div>
         </div>
 
-        <div class="w-full md:w-[250px] space-y-3">
-          <div class="rounded-2xl bg-white border p-4 shadow-sm">
-            <div class="grid grid-cols-2 gap-3 text-sm">
+        <div class="grid lg:grid-cols-[1fr_auto] gap-3 items-start">
+          <div class="rounded-2xl border bg-white p-4 shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
               <div>
-                <div class="text-slate-500">金币</div>
-                <div class="text-2xl font-black text-amber-500">💰 <span id="goldText">10</span></div>
+                <div class="text-sm text-slate-500">当前选中</div>
+                <div id="selectedHeroText" class="font-bold text-slate-900">未选择单位</div>
               </div>
-              <div>
-                <div class="text-slate-500">回合</div>
-                <div class="text-2xl font-black text-slate-900">#<span id="roundText">1</span></div>
-              </div>
-              <div>
-                <div class="text-slate-500">等级</div>
-                <div class="text-2xl font-black text-blue-600">Lv.<span id="levelText">1</span></div>
-              </div>
-              <div>
-                <div class="text-slate-500">人口</div>
-                <div class="text-2xl font-black text-emerald-600"><span id="populationText">0</span>/<span id="populationCapText">3</span></div>
+              <div class="text-right">
+                <div class="text-sm text-slate-500">进度</div>
+                <div class="font-semibold text-slate-800">第 <span id="roundTextInline">1</span> 回合 · Lv.<span id="levelTextInline">1</span></div>
               </div>
             </div>
-
-            <div class="mt-4">
-              <div class="flex items-center justify-between text-sm text-slate-500 mb-1">
-                <span>经验</span><span id="xpText">0/2</span>
-              </div>
-              <div class="h-3 rounded-full bg-slate-100 overflow-hidden border">
-                <div id="xpBar" class="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400" style="width:0%"></div>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 mt-4">
-              <button id="refreshBtn" class="rounded-xl bg-slate-900 hover:bg-slate-800 text-white py-2.5 text-sm font-semibold">刷新商店 (2金)</button>
-              <button id="levelBtn" class="rounded-xl bg-blue-600 hover:bg-blue-500 text-white py-2.5 text-sm font-semibold">升级人口 (4金)</button>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 mt-2">
-              <button id="battleBtn" class="rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 text-sm font-semibold">开始战斗</button>
-              <button id="soundBtn" class="rounded-xl bg-amber-500 hover:bg-amber-400 text-white py-2.5 text-sm font-semibold">音效：开</button>
-            </div>
+            <div id="synergyStrip" class="flex flex-wrap gap-2 text-sm"></div>
+            <p class="text-xs text-slate-500 mt-3">提示：战斗前可拖动己方单位调整站位；点击单位后，再去装备栏选择装备。</p>
           </div>
 
-          <div class="rounded-2xl bg-white border p-4 shadow-sm">
-            <div class="flex items-center justify-between mb-3">
-              <h2 class="font-bold text-slate-900">战斗日志</h2>
-              <button id="clearLogBtn" class="text-xs text-slate-500 hover:text-slate-700">清空</button>
+          <div class="grid grid-cols-2 gap-3 min-w-[210px]">
+            <div class="rounded-2xl border bg-white p-4 shadow-sm">
+              <div class="text-sm text-slate-500">金币</div>
+              <div class="text-2xl font-black text-amber-500">💰 <span id="goldText">10</span></div>
             </div>
-            <div id="logBox" class="text-xs leading-5 text-slate-600 space-y-1 max-h-44 overflow-auto pr-1"></div>
+            <div class="rounded-2xl border bg-white p-4 shadow-sm">
+              <div class="text-sm text-slate-500">人口</div>
+              <div class="text-2xl font-black text-emerald-600"><span id="populationText">0</span>/<span id="populationCapText">3</span></div>
+            </div>
+            <div class="rounded-2xl border bg-white p-4 shadow-sm">
+              <div class="text-sm text-slate-500">等级</div>
+              <div class="text-2xl font-black text-blue-600">Lv.<span id="levelText">1</span></div>
+            </div>
+            <div class="rounded-2xl border bg-white p-4 shadow-sm">
+              <div class="text-sm text-slate-500">经验</div>
+              <div class="text-lg font-black text-slate-900"><span id="xpText">0/2</span></div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="glass border border-white/70 rounded-3xl shadow-xl p-4 md:p-5">
-      <div class="flex items-end justify-between mb-3">
-        <div>
-          <h2 class="text-xl font-black text-slate-900">商店招募</h2>
-          <p class="text-sm text-slate-500">点击卡牌购买；战斗中无法招募。</p>
+    <div class="glass border border-white/70 rounded-3xl shadow-xl p-4 md:p-5 space-y-4">
+      <div class="rounded-2xl bg-white border p-4 shadow-sm">
+        <div class="flex items-center justify-between gap-3 mb-3">
+          <div>
+            <h2 class="text-xl font-black text-slate-900">指挥面板</h2>
+            <p class="text-sm text-slate-500">界面已压缩，主要操作都放在这里。</p>
+          </div>
+          <div class="text-xs text-slate-500 text-right">
+            <div>最佳回合：<span id="bestRoundText">0</span></div>
+            <div>总胜场：<span id="winText">0</span></div>
+          </div>
         </div>
-        <div class="text-xs text-slate-500 text-right">
-          <div>当前：<span id="phaseText" class="font-bold text-slate-800">准备阶段</span></div>
-          <div>敌人强度随回合上升</div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button id="battleBtn" class="rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 text-sm font-semibold">开始战斗</button>
+          <button id="levelBtn" class="rounded-xl bg-blue-600 hover:bg-blue-500 text-white py-2.5 text-sm font-semibold">购买经验 (4金)</button>
+          <button id="refreshBtn" class="rounded-xl bg-slate-900 hover:bg-slate-800 text-white py-2.5 text-sm font-semibold">刷新商店 (2金)</button>
+          <button id="soundBtn" class="rounded-xl bg-amber-500 hover:bg-amber-400 text-white py-2.5 text-sm font-semibold">音效：开</button>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 mt-2">
+          <button id="saveBtn" class="rounded-xl bg-slate-700 hover:bg-slate-600 text-white py-2 text-sm font-semibold">手动保存</button>
+          <button id="loadBtn" class="rounded-xl bg-slate-700 hover:bg-slate-600 text-white py-2 text-sm font-semibold">读取存档</button>
+          <button id="resetBtn" class="rounded-xl bg-rose-600 hover:bg-rose-500 text-white py-2 text-sm font-semibold">新开局</button>
         </div>
       </div>
 
-      <div id="shopGrid" class="grid gap-3"></div>
-
-      <div class="mt-4 rounded-2xl border bg-slate-50 p-4">
-        <h3 class="font-bold text-slate-900 mb-2">阵容说明</h3>
-        <div class="grid grid-cols-2 gap-2 text-sm text-slate-600">
-          <div>🛡️ 盾卫：高血量，前排抗伤</div>
-          <div>⚔️ 剑士：近战均衡，稳定输出</div>
-          <div>🏹 弓手：远程射击，攻速较快</div>
-          <div>🔥 法师：高爆发，附带溅射</div>
-          <div>🗡️ 刺客：高暴击，快速切后排</div>
-          <div>✨ 祭司：持续治疗，保住前线</div>
+      <div class="rounded-2xl bg-white border p-4 shadow-sm">
+        <div class="flex items-center gap-2 mb-3">
+          <button data-tab="recruit" class="tabBtn rounded-full px-3 py-1.5 text-sm font-semibold bg-slate-900 text-white">招募</button>
+          <button data-tab="gear" class="tabBtn rounded-full px-3 py-1.5 text-sm font-semibold bg-slate-100 text-slate-700">装备</button>
+          <button data-tab="save" class="tabBtn rounded-full px-3 py-1.5 text-sm font-semibold bg-slate-100 text-slate-700">存档</button>
         </div>
+
+        <div id="recruitTab">
+          <div class="text-xs text-slate-500 mb-2">点击购买，自动进入空位；可在战斗前拖动换位。</div>
+          <div id="shopGrid" class="grid gap-2"></div>
+        </div>
+
+        <div id="gearTab" class="hidden">
+          <div class="text-xs text-slate-500 mb-2">先点选一名己方单位，再点击装备卡完成穿戴。</div>
+          <div id="gearGrid" class="grid gap-2"></div>
+        </div>
+
+        <div id="saveTab" class="hidden space-y-3">
+          <div class="rounded-xl border bg-slate-50 p-3 text-sm text-slate-700">
+            <div>自动存档：<span class="font-semibold">已开启</span></div>
+            <div class="mt-1">包含回合、金币、人口、己方阵容、装备与进度。</div>
+          </div>
+          <div class="rounded-xl border bg-slate-50 p-3 text-sm text-slate-700">
+            <div>当前存档键：<span class="font-mono text-xs">hero_chess_save_v3</span></div>
+            <div class="mt-1">浏览器刷新后仍会保留。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-2xl bg-white border p-4 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-bold text-slate-900">战斗日志</h3>
+          <button id="clearLogBtn" class="text-xs text-slate-500 hover:text-slate-700">清空</button>
+        </div>
+        <div id="logBox" class="text-xs leading-5 text-slate-600 space-y-1 max-h-48 overflow-auto pr-1"></div>
       </div>
     </div>
   </div>
 
   <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const SAVE_KEY = 'hero_chess_save_v3';
 
     const ui = {
-      goldText: document.getElementById("goldText"),
-      roundText: document.getElementById("roundText"),
-      levelText: document.getElementById("levelText"),
-      populationText: document.getElementById("populationText"),
-      populationCapText: document.getElementById("populationCapText"),
-      xpText: document.getElementById("xpText"),
-      xpBar: document.getElementById("xpBar"),
-      shopGrid: document.getElementById("shopGrid"),
-      phaseText: document.getElementById("phaseText"),
-      logBox: document.getElementById("logBox"),
-      battleBtn: document.getElementById("battleBtn"),
-      refreshBtn: document.getElementById("refreshBtn"),
-      levelBtn: document.getElementById("levelBtn"),
-      soundBtn: document.getElementById("soundBtn"),
-      clearLogBtn: document.getElementById("clearLogBtn"),
-      livesBar: document.getElementById("livesBar"),
-      battleBanner: document.getElementById("battleBanner"),
+      goldText: document.getElementById('goldText'),
+      populationText: document.getElementById('populationText'),
+      populationCapText: document.getElementById('populationCapText'),
+      levelText: document.getElementById('levelText'),
+      roundTextInline: document.getElementById('roundTextInline'),
+      levelTextInline: document.getElementById('levelTextInline'),
+      xpText: document.getElementById('xpText'),
+      selectedHeroText: document.getElementById('selectedHeroText'),
+      synergyStrip: document.getElementById('synergyStrip'),
+      bestRoundText: document.getElementById('bestRoundText'),
+      winText: document.getElementById('winText'),
+      livesBar: document.getElementById('livesBar'),
+      battleBanner: document.getElementById('battleBanner'),
+      logBox: document.getElementById('logBox'),
+      shopGrid: document.getElementById('shopGrid'),
+      gearGrid: document.getElementById('gearGrid'),
+      battleBtn: document.getElementById('battleBtn'),
+      levelBtn: document.getElementById('levelBtn'),
+      refreshBtn: document.getElementById('refreshBtn'),
+      soundBtn: document.getElementById('soundBtn'),
+      saveBtn: document.getElementById('saveBtn'),
+      loadBtn: document.getElementById('loadBtn'),
+      resetBtn: document.getElementById('resetBtn'),
+      clearLogBtn: document.getElementById('clearLogBtn'),
+      recruitTab: document.getElementById('recruitTab'),
+      gearTab: document.getElementById('gearTab'),
+      saveTab: document.getElementById('saveTab'),
+      tabBtns: [...document.querySelectorAll('.tabBtn')],
     };
 
-    const W = canvas.width;
-    const H = canvas.height;
+    const board = {
+      allySlots: [
+        { x: 170, y: 190 }, { x: 170, y: 370 },
+        { x: 290, y: 190 }, { x: 290, y: 370 },
+        { x: 410, y: 190 }, { x: 410, y: 370 },
+      ],
+      enemySlots: [
+        { x: 750, y: 190 }, { x: 750, y: 370 },
+        { x: 630, y: 190 }, { x: 630, y: 370 },
+        { x: 510, y: 190 }, { x: 510, y: 370 },
+      ],
+    };
+
+    const heroTemplates = {
+      warrior: { key: 'warrior', name: '剑士', icon: '⚔️', cost: 3, trait: 'front', color: '#2563eb', hp: 180, atk: 22, range: 34, speed: 54, cooldown: 0.85, crit: 0.08, armor: 4 },
+      tank: { key: 'tank', name: '盾卫', icon: '🛡️', cost: 4, trait: 'front', color: '#0f766e', hp: 270, atk: 16, range: 30, speed: 44, cooldown: 1.00, crit: 0.04, armor: 9 },
+      archer: { key: 'archer', name: '弓手', icon: '🏹', cost: 4, trait: 'range', color: '#d97706', hp: 120, atk: 18, range: 200, speed: 60, cooldown: 0.56, crit: 0.12, armor: 1 },
+      mage: { key: 'mage', name: '法师', icon: '🔥', cost: 5, trait: 'arcane', color: '#a855f7', hp: 100, atk: 34, range: 230, speed: 50, cooldown: 1.15, crit: 0.08, armor: 0, splash: 0.25 },
+      assassin: { key: 'assassin', name: '刺客', icon: '🗡️', cost: 5, trait: 'shadow', color: '#ef4444', hp: 110, atk: 28, range: 42, speed: 96, cooldown: 0.65, crit: 0.32, armor: 0 },
+      priest: { key: 'priest', name: '祭司', icon: '✨', cost: 4, trait: 'holy', color: '#14b8a6', hp: 110, atk: 10, range: 210, speed: 48, cooldown: 0.90, crit: 0.00, armor: 1, heal: 22 },
+    };
+
+    const enemyTemplates = {
+      slime: { key: 'slime', name: '史莱姆', icon: '🟢', color: '#ef4444', hp: 120, atk: 12, range: 30, speed: 44, cooldown: 0.95, crit: 0.04, armor: 1 },
+      orc: { key: 'orc', name: '兽人', icon: '👹', color: '#dc2626', hp: 180, atk: 20, range: 34, speed: 46, cooldown: 0.95, crit: 0.05, armor: 3 },
+      witch: { key: 'witch', name: '巫妖', icon: '🧙', color: '#7c3aed', hp: 110, atk: 26, range: 220, speed: 42, cooldown: 1.10, crit: 0.10, armor: 0, splash: 0.20 },
+      wolf: { key: 'wolf', name: '魔狼', icon: '🐺', color: '#fb7185', hp: 145, atk: 20, range: 40, speed: 72, cooldown: 0.78, crit: 0.12, armor: 1 },
+      boss: { key: 'boss', name: '深渊领主', icon: '👑', color: '#991b1b', hp: 460, atk: 34, range: 46, speed: 34, cooldown: 1.05, crit: 0.18, armor: 7, splash: 0.45, boss: true },
+    };
+
+    const equipmentPool = [
+      { key: 'blade', name: '锋刃', icon: '🗡️', desc: '+12 攻击', mod: { atk: 12 } },
+      { key: 'armor', name: '铁甲', icon: '🛡️', desc: '+40 生命，+3 护甲', mod: { hp: 40, armor: 3 } },
+      { key: 'boots', name: '疾步靴', icon: '👢', desc: '+14 速度', mod: { speed: 14 } },
+      { key: 'gem', name: '暴击石', icon: '💎', desc: '+16% 暴击', mod: { crit: 0.16, atk: 4 } },
+      { key: 'wand', name: '法杖', icon: '🔮', desc: '+24 射程', mod: { range: 24, atk: 6 } },
+      { key: 'ring', name: '吸血戒', icon: '🩸', desc: '+8 攻击，12% 吸血', mod: { atk: 8, lifesteal: 0.12 } },
+      { key: 'relic', name: '守护符', icon: '✨', desc: '+25 生命，开场护盾', mod: { hp: 25, shield: 28 } },
+      { key: 'hourglass', name: '沙漏', icon: '⏳', desc: '+10% 冷却效率', mod: { cooldownMult: 0.9 } },
+    ];
 
     const state = {
       gold: 10,
@@ -164,78 +235,61 @@
       level: 1,
       xp: 0,
       lives: 5,
-      soundOn: true,
       battle: false,
-      battleEnded: false,
-      messageTimer: 0,
-      shop: [],
+      soundOn: true,
+      selectedHeroId: null,
       heroes: [],
       enemies: [],
+      shop: [],
+      gearShop: [],
       particles: [],
       damageTexts: [],
+      battleBannerTimer: 0,
+      bestRound: 0,
+      wins: 0,
+      dragging: null,
       lastFrame: performance.now(),
+      tab: 'recruit',
     };
 
-    const heroPool = [
-      { key: "warrior", name: "剑士", icon: "⚔️", cost: 3, color: "#2563eb", hp: 180, atk: 22, range: 34, speed: 52, cooldown: 0.8, role: "front", crit: 0.08, armor: 5 },
-      { key: "tank", name: "盾卫", icon: "🛡️", cost: 4, color: "#0f766e", hp: 260, atk: 16, range: 30, speed: 42, cooldown: 1.0, role: "front", crit: 0.05, armor: 9 },
-      { key: "archer", name: "弓手", icon: "🏹", cost: 4, color: "#d97706", hp: 120, atk: 18, range: 190, speed: 58, cooldown: 0.55, role: "ranged", crit: 0.12, armor: 1 },
-      { key: "mage", name: "法师", icon: "🔥", cost: 5, color: "#a855f7", hp: 100, atk: 34, range: 220, speed: 50, cooldown: 1.15, role: "caster", crit: 0.08, armor: 0 },
-      { key: "assassin", name: "刺客", icon: "🗡️", cost: 5, color: "#ef4444", hp: 110, atk: 28, range: 42, speed: 92, cooldown: 0.65, role: "dive", crit: 0.35, armor: 0 },
-      { key: "priest", name: "祭司", icon: "✨", cost: 4, color: "#14b8a6", hp: 110, atk: 10, range: 200, speed: 48, cooldown: 0.95, role: "support", heal: 24, crit: 0.0, armor: 1 },
-    ];
+    function uid() {
+      return (crypto && crypto.randomUUID) ? crypto.randomUUID() : `u_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    }
 
-    const enemyPool = [
-      { key: "slime", name: "史莱姆", icon: "🟢", color: "#ef4444", hp: 120, atk: 12, range: 30, speed: 44, cooldown: 0.95, crit: 0.04, armor: 1 },
-      { key: "orc", name: "兽人", icon: "👹", color: "#dc2626", hp: 170, atk: 18, range: 34, speed: 46, cooldown: 0.9, crit: 0.06, armor: 3 },
-      { key: "witch", name: "巫妖", icon: "🧙", color: "#7c3aed", hp: 105, atk: 26, range: 210, speed: 42, cooldown: 1.15, crit: 0.1, armor: 0 },
-      { key: "wolf", name: "魔狼", icon: "🐺", color: "#fb7185", hp: 140, atk: 20, range: 40, speed: 72, cooldown: 0.75, crit: 0.12, armor: 1 },
-      { key: "boss", name: "首领", icon: "👑", color: "#991b1b", hp: 380, atk: 30, range: 44, speed: 36, cooldown: 1.05, crit: 0.15, armor: 6 },
-    ];
+    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+    function choice(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
     function log(text) {
-      const node = document.createElement("div");
-      node.textContent = `• ${text}`;
-      ui.logBox.prepend(node);
-      while (ui.logBox.children.length > 8) ui.logBox.removeChild(ui.logBox.lastChild);
+      const row = document.createElement('div');
+      row.textContent = `• ${text}`;
+      ui.logBox.prepend(row);
+      while (ui.logBox.children.length > 9) ui.logBox.removeChild(ui.logBox.lastChild);
     }
 
-    function showBanner(text, bg = "bg-slate-900") {
-      ui.battleBanner.className = `absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-white font-bold shadow-lg ${bg}`;
+    function showBanner(text, cls = 'bg-slate-900') {
+      ui.battleBanner.className = `absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-white font-bold shadow-lg ${cls}`;
       ui.battleBanner.textContent = text;
-      ui.battleBanner.classList.remove("hidden");
-      state.messageTimer = 1.2;
+      ui.battleBanner.classList.remove('hidden');
+      state.battleBannerTimer = 1.2;
     }
 
-    function playBeep(type = "hit") {
+    function playSound(type = 'hit') {
       if (!state.soundOn) return;
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (!AudioCtx) return;
-      const ac = playBeep._ac || (playBeep._ac = new AudioCtx());
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      const ac = playSound._ac || (playSound._ac = new AC());
       const o = ac.createOscillator();
       const g = ac.createGain();
-      o.type = type === "victory" ? "triangle" : type === "heal" ? "sine" : "square";
-      o.frequency.value = type === "victory" ? 660 : type === "heal" ? 520 : 240;
-      g.gain.value = type === "victory" ? 0.035 : type === "heal" ? 0.02 : 0.03;
-      o.connect(g);
-      g.connect(ac.destination);
+      o.type = type === 'victory' ? 'triangle' : type === 'heal' ? 'sine' : 'square';
+      o.frequency.value = type === 'victory' ? 740 : type === 'heal' ? 520 : 240;
+      g.gain.value = type === 'victory' ? 0.04 : type === 'heal' ? 0.02 : 0.03;
+      o.connect(g); g.connect(ac.destination);
       o.start();
-      o.stop(ac.currentTime + (type === "victory" ? 0.12 : 0.06));
+      o.stop(ac.currentTime + (type === 'victory' ? 0.12 : 0.06));
     }
 
-    function clamp(v, min, max) {
-      return Math.max(min, Math.min(max, v));
-    }
-
-    function rand(min, max) {
-      return Math.random() * (max - min) + min;
-    }
-
-    function choice(arr) {
-      return arr[Math.floor(Math.random() * arr.length)];
-    }
-
-    function roundRect(x, y, w, h, r = 16) {
+    function roundRect(x, y, w, h, r = 14) {
       const rr = Math.min(r, w / 2, h / 2);
       ctx.beginPath();
       ctx.moveTo(x + rr, y);
@@ -246,42 +300,81 @@
       ctx.closePath();
     }
 
-    function makeUnit(template, side, index) {
-      const isHero = side === "hero";
-      const startX = isHero ? 140 : W - 140;
-      const startY = 100 + index * 86;
+    function getFreeAllySlot() {
+      for (let i = 0; i < board.allySlots.length; i++) {
+        if (!state.heroes.some(h => h.slot === i)) return i;
+      }
+      return -1;
+    }
+
+    function makeHero(template, slot) {
+      const base = { ...template };
+      const hero = {
+        id: uid(),
+        side: 'hero',
+        key: template.key,
+        name: template.name,
+        icon: template.icon,
+        trait: template.trait,
+        color: template.color,
+        slot,
+        base,
+        items: [],
+        x: board.allySlots[slot].x,
+        y: board.allySlots[slot].y,
+        hp: base.hp,
+        maxHp: base.hp,
+        atk: base.atk,
+        range: base.range,
+        speed: base.speed,
+        cooldown: base.cooldown,
+        cd: rand(0, base.cooldown * 0.6),
+        crit: base.crit || 0,
+        armor: base.armor || 0,
+        heal: base.heal || 0,
+        splash: base.splash || 0,
+        lifesteal: base.lifesteal || 0,
+        shield: 0,
+        alive: true,
+        flash: 0,
+        attackFlash: 0,
+      };
+      return hero;
+    }
+
+    function makeEnemy(template, slot) {
+      const base = { ...template };
       return {
-        side,
+        id: uid(),
+        side: 'enemy',
         key: template.key,
         name: template.name,
         icon: template.icon,
         color: template.color,
-        x: startX + rand(-8, 8),
-        y: clamp(startY + rand(-12, 12), 70, H - 70),
-        tx: startX,
-        ty: startY,
-        hp: template.hp,
-        maxHp: template.hp,
-        atk: template.atk,
-        range: template.range,
-        speed: template.speed,
-        cooldown: template.cooldown,
-        cd: rand(0, template.cooldown * 0.6),
-        crit: template.crit || 0,
-        armor: template.armor || 0,
-        role: template.role || "front",
-        heal: template.heal || 0,
-        alive: true,
+        boss: !!template.boss,
+        slot,
+        base,
+        x: board.enemySlots[slot].x,
+        y: board.enemySlots[slot].y,
+        hp: base.hp,
+        maxHp: base.hp,
+        atk: base.atk,
+        range: base.range,
+        speed: base.speed,
+        cooldown: base.cooldown,
+        cd: rand(0, base.cooldown * 0.5),
+        crit: base.crit || 0,
+        armor: base.armor || 0,
+        splash: base.splash || 0,
+        shield: 0,
         flash: 0,
         attackFlash: 0,
-        shield: 0,
-        targetIndex: -1,
       };
     }
 
-    function generateShop() {
+    function makeShopHeroes() {
+      const pool = Object.values(heroTemplates);
       const picks = [];
-      const pool = [...heroPool];
       while (picks.length < 3) {
         const t = choice(pool);
         if (!picks.includes(t)) picks.push(t);
@@ -290,27 +383,279 @@
       renderShop();
     }
 
+    function makeGearShop() {
+      const picks = [];
+      while (picks.length < 3) {
+        const t = choice(equipmentPool);
+        if (!picks.includes(t)) picks.push(t);
+      }
+      state.gearShop = picks;
+      renderGearShop();
+    }
+
+    function setTab(tab) {
+      state.tab = tab;
+      ui.tabBtns.forEach(btn => {
+        const active = btn.dataset.tab === tab;
+        btn.className = `tabBtn rounded-full px-3 py-1.5 text-sm font-semibold ${active ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'}`;
+      });
+      ui.recruitTab.classList.toggle('hidden', tab !== 'recruit');
+      ui.gearTab.classList.toggle('hidden', tab !== 'gear');
+      ui.saveTab.classList.toggle('hidden', tab !== 'save');
+    }
+
+    function getSavedData() {
+      try { return JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); }
+      catch { return null; }
+    }
+
+    function saveGame() {
+      try {
+        const data = {
+          gold: state.gold,
+          round: state.round,
+          level: state.level,
+          xp: state.xp,
+          lives: state.lives,
+          bestRound: state.bestRound,
+          wins: state.wins,
+          heroes: state.heroes.map(h => ({
+            key: h.key,
+            trait: h.trait,
+            slot: h.slot,
+            hp: Math.max(1, Math.round(h.hp)),
+            items: h.items.map(it => it.key),
+          })),
+          gearShop: state.gearShop.map(it => it.key),
+          selectedHeroId: state.selectedHeroId,
+        };
+        localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+      } catch (e) {
+        console.warn('save failed', e);
+      }
+      updateUI();
+    }
+
+    function loadGame(silent = false) {
+      const data = getSavedData();
+      if (!data) {
+        if (!silent) log('没有找到存档，已保留当前新开局。');
+        return false;
+      }
+
+      state.gold = data.gold ?? 10;
+      state.round = data.round ?? 1;
+      state.level = data.level ?? 1;
+      state.xp = data.xp ?? 0;
+      state.lives = data.lives ?? 5;
+      state.bestRound = data.bestRound ?? 0;
+      state.wins = data.wins ?? 0;
+      state.selectedHeroId = data.selectedHeroId ?? null;
+      state.heroes = [];
+      state.enemies = [];
+      state.particles = [];
+      state.damageTexts = [];
+      state.battle = false;
+      state.dragging = null;
+
+      (data.heroes || []).forEach(hd => {
+        const template = heroTemplates[hd.key];
+        if (!template) return;
+        const slot = clamp(hd.slot ?? 0, 0, board.allySlots.length - 1);
+        const hero = makeHero(template, slot);
+        hero.items = (hd.items || []).map(key => ({ key, ...(equipmentPool.find(it => it.key === key) || {}) })).filter(it => it.name);
+        hero.hp = clamp(hd.hp ?? hero.maxHp, 1, hero.maxHp);
+        state.heroes.push(hero);
+      });
+      state.gearShop = (data.gearShop || []).map(key => equipmentPool.find(it => it.key === key)).filter(Boolean);
+      if (state.gearShop.length < 3) makeGearShop(); else renderGearShop();
+
+      recalcArmy();
+      if (!silent) log('存档读取成功。');
+      updateUI();
+      return true;
+    }
+
+    function resetGame(clearSave = false) {
+      state.gold = 10;
+      state.round = 1;
+      state.level = 1;
+      state.xp = 0;
+      state.lives = 5;
+      state.bestRound = state.bestRound || 0;
+      state.wins = state.wins || 0;
+      state.battle = false;
+      state.soundOn = true;
+      state.selectedHeroId = null;
+      state.heroes = [];
+      state.enemies = [];
+      state.shop = [];
+      state.gearShop = [];
+      state.particles = [];
+      state.damageTexts = [];
+      state.dragging = null;
+      state.battleBannerTimer = 0;
+      ui.logBox.innerHTML = '';
+      if (clearSave) localStorage.removeItem(SAVE_KEY);
+      makeShopHeroes();
+      makeGearShop();
+      recalcArmy();
+      log('新开局已创建。');
+      saveGame();
+      updateUI();
+    }
+
+    function addDamageText(x, y, text, color = '#fff') {
+      state.damageTexts.push({ x, y, text, color, life: 0.85, vx: rand(-5, 5), vy: -22 });
+    }
+
+    function spawnSpark(x, y, color) {
+      for (let i = 0; i < 5; i++) {
+        state.particles.push({ x, y, vx: rand(-60, 60), vy: rand(-60, 60), life: rand(0.22, 0.48), color });
+      }
+    }
+
+    function nearestSlot(point, slots) {
+      let best = { idx: -1, dist: Infinity };
+      slots.forEach((s, idx) => {
+        const d = Math.hypot(s.x - point.x, s.y - point.y);
+        if (d < best.dist) best = { idx, dist: d };
+      });
+      return best;
+    }
+
+    function getItemMods(hero) {
+      const mods = {
+        hp: 0,
+        atk: 0,
+        range: 0,
+        speed: 0,
+        crit: 0,
+        armor: 0,
+        heal: 0,
+        splash: 0,
+        lifesteal: 0,
+        shield: 0,
+        cooldownMult: 1,
+      };
+      hero.items.forEach(it => {
+        if (!it) return;
+        mods.hp += it.mod?.hp || 0;
+        mods.atk += it.mod?.atk || 0;
+        mods.range += it.mod?.range || 0;
+        mods.speed += it.mod?.speed || 0;
+        mods.crit += it.mod?.crit || 0;
+        mods.armor += it.mod?.armor || 0;
+        mods.heal += it.mod?.heal || 0;
+        mods.splash += it.mod?.splash || 0;
+        mods.lifesteal += it.mod?.lifesteal || 0;
+        mods.shield += it.mod?.shield || 0;
+        if (it.mod?.cooldownMult) mods.cooldownMult *= it.mod.cooldownMult;
+      });
+      return mods;
+    }
+
+    function getTraitCounts() {
+      const counts = { front: 0, range: 0, arcane: 0, shadow: 0, holy: 0 };
+      state.heroes.forEach(h => {
+        if (counts[h.trait] !== undefined) counts[h.trait] += 1;
+      });
+      return counts;
+    }
+
+    function getTraitBonus(trait, count) {
+      const b = { hpMult: 1, atkMult: 1, rangeAdd: 0, speedAdd: 0, armorAdd: 0, critAdd: 0, cooldownMult: 1, healMult: 1, splashMult: 1, shieldAdd: 0 };
+      if (trait === 'front') {
+        if (count >= 2) { b.hpMult *= 1.12; b.armorAdd += 2; }
+        if (count >= 4) { b.hpMult *= 1.15; b.armorAdd += 3; }
+      } else if (trait === 'range') {
+        if (count >= 2) { b.atkMult *= 1.12; b.rangeAdd += 14; }
+        if (count >= 4) { b.atkMult *= 1.12; b.rangeAdd += 18; }
+      } else if (trait === 'arcane') {
+        if (count >= 2) { b.splashMult *= 1.28; b.cooldownMult *= 0.92; }
+        if (count >= 4) { b.splashMult *= 1.45; b.cooldownMult *= 0.90; }
+      } else if (trait === 'shadow') {
+        if (count >= 2) { b.critAdd += 0.15; b.speedAdd += 6; }
+        if (count >= 4) { b.critAdd += 0.15; b.speedAdd += 6; }
+      } else if (trait === 'holy') {
+        if (count >= 2) { b.healMult *= 1.30; b.cooldownMult *= 0.92; }
+        if (count >= 4) { b.healMult *= 1.30; b.shieldAdd += 20; }
+      }
+      return b;
+    }
+
+    function recalcArmy() {
+      const counts = getTraitCounts();
+      state.heroes.forEach(hero => {
+        const prevMax = hero.maxHp || hero.base.hp;
+        const hpRatio = prevMax > 0 ? hero.hp / prevMax : 1;
+        const itemMods = getItemMods(hero);
+        const traitBonus = getTraitBonus(hero.trait, counts[hero.trait] || 0);
+
+        let maxHp = hero.base.hp + itemMods.hp;
+        let atk = hero.base.atk + itemMods.atk;
+        let range = hero.base.range + itemMods.range;
+        let speed = hero.base.speed + itemMods.speed;
+        let cooldown = hero.base.cooldown * itemMods.cooldownMult;
+        let crit = (hero.base.crit || 0) + itemMods.crit;
+        let armor = (hero.base.armor || 0) + itemMods.armor;
+        let heal = (hero.base.heal || 0) + itemMods.heal;
+        let splash = (hero.base.splash || 0) + itemMods.splash;
+        let lifesteal = (hero.base.lifesteal || 0) + itemMods.lifesteal;
+        let shield = itemMods.shield;
+
+        maxHp = Math.round(maxHp * traitBonus.hpMult);
+        atk = Math.round(atk * traitBonus.atkMult);
+        range = Math.round(range + traitBonus.rangeAdd);
+        speed = Math.round(speed + traitBonus.speedAdd);
+        cooldown = Math.max(0.28, cooldown * traitBonus.cooldownMult);
+        crit = crit + traitBonus.critAdd;
+        armor = Math.max(0, Math.round(armor + traitBonus.armorAdd));
+        heal = Math.round(heal * traitBonus.healMult);
+        splash = splash * traitBonus.splashMult;
+        shield += traitBonus.shieldAdd;
+
+        hero.maxHp = Math.max(1, maxHp);
+        hero.atk = Math.max(1, atk);
+        hero.range = Math.max(22, range);
+        hero.speed = Math.max(28, speed);
+        hero.cooldown = cooldown;
+        hero.crit = clamp(crit, 0, 0.75);
+        hero.armor = armor;
+        hero.heal = Math.max(0, heal);
+        hero.splash = splash;
+        hero.lifesteal = lifesteal;
+        hero.shield = shield;
+        hero.hp = clamp(Math.round(hero.maxHp * hpRatio), 1, hero.maxHp);
+
+        if (hero.slot != null && board.allySlots[hero.slot]) {
+          hero.x = board.allySlots[hero.slot].x;
+          hero.y = board.allySlots[hero.slot].y;
+        }
+      });
+      updateUI();
+    }
+
     function renderShop() {
-      ui.shopGrid.innerHTML = "";
-      state.shop.forEach((unit, idx) => {
-        const btn = document.createElement("button");
-        btn.className = "unit-card text-left rounded-2xl border bg-white p-4 shadow-sm hover:border-slate-300";
+      ui.shopGrid.innerHTML = '';
+      state.shop.forEach((t, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'card text-left rounded-2xl border bg-white p-3 shadow-sm hover:border-slate-300';
         btn.innerHTML = `
-          <div class="flex items-start justify-between gap-3">
+          <div class="flex items-center justify-between gap-3">
             <div>
-              <div class="text-lg font-black text-slate-900">${unit.icon} ${unit.name}</div>
-              <div class="text-xs text-slate-500 mt-1">${unit.cost} 金币 · ${unit.role === "support" ? "治疗辅助" : unit.role === "caster" ? "法术输出" : unit.role === "dive" ? "切后排" : unit.role === "ranged" ? "远程输出" : "前排单位"}</div>
+              <div class="text-base font-black text-slate-900">${t.icon} ${t.name}</div>
+              <div class="text-xs text-slate-500 mt-0.5">${t.trait === 'front' ? '前排' : t.trait === 'range' ? '远程' : t.trait === 'arcane' ? '法术' : t.trait === 'shadow' ? '切入' : '治疗'}</div>
             </div>
             <div class="text-right">
-              <div class="text-sm font-bold text-amber-500">💰 ${unit.cost}</div>
-              <div class="text-xs text-slate-400">点击招募</div>
+              <div class="text-sm font-bold text-amber-500">💰 ${t.cost}</div>
             </div>
           </div>
-          <div class="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-600">
-            <div>HP <b class="text-slate-900">${unit.hp}</b></div>
-            <div>ATK <b class="text-slate-900">${unit.atk}</b></div>
-            <div>RNG <b class="text-slate-900">${Math.round(unit.range)}</b></div>
-            <div>SPD <b class="text-slate-900">${unit.speed}</b></div>
+          <div class="mt-2 grid grid-cols-4 gap-1 text-[11px] text-slate-600">
+            <div>HP <b class="text-slate-900">${t.hp}</b></div>
+            <div>ATK <b class="text-slate-900">${t.atk}</b></div>
+            <div>RNG <b class="text-slate-900">${Math.round(t.range)}</b></div>
+            <div>SPD <b class="text-slate-900">${t.speed}</b></div>
           </div>
         `;
         btn.onclick = () => buyHero(idx);
@@ -318,240 +663,283 @@
       });
     }
 
-    function updateUI() {
-      ui.goldText.textContent = state.gold;
-      ui.roundText.textContent = state.round;
-      ui.levelText.textContent = state.level;
-      ui.populationText.textContent = state.heroes.length;
-      ui.populationCapText.textContent = state.level + 2;
-
-      const nextXp = state.level * 2;
-      ui.xpText.textContent = `${state.xp}/${nextXp}`;
-      ui.xpBar.style.width = `${clamp((state.xp / nextXp) * 100, 0, 100)}%`;
-
-      ui.phaseText.textContent = state.battle ? "战斗阶段" : "准备阶段";
-      ui.soundBtn.textContent = `音效：${state.soundOn ? "开" : "关"}`;
-
-      ui.livesBar.innerHTML = "";
-      for (let i = 0; i < 5; i++) {
-        const dot = document.createElement("div");
-        dot.className = `w-4 h-4 rounded-full border ${i < state.lives ? "bg-rose-500 border-rose-600" : "bg-slate-200 border-slate-300"}`;
-        ui.livesBar.appendChild(dot);
-      }
-
-      ui.levelBtn.disabled = state.gold < 4 || state.battle;
-      ui.refreshBtn.disabled = state.gold < 2 || state.battle;
-      ui.battleBtn.disabled = state.battle || state.heroes.length === 0;
-
-      ui.levelBtn.className = `rounded-xl py-2.5 text-sm font-semibold text-white ${state.gold >= 4 && !state.battle ? "bg-blue-600 hover:bg-blue-500" : "bg-blue-300 cursor-not-allowed"}`;
-      ui.refreshBtn.className = `rounded-xl py-2.5 text-sm font-semibold text-white ${state.gold >= 2 && !state.battle ? "bg-slate-900 hover:bg-slate-800" : "bg-slate-400 cursor-not-allowed"}`;
-      ui.battleBtn.className = `rounded-xl py-2.5 text-sm font-semibold text-white ${!state.battle && state.heroes.length > 0 ? "bg-emerald-600 hover:bg-emerald-500" : "bg-emerald-300 cursor-not-allowed"}`;
-      ui.soundBtn.className = `rounded-xl py-2.5 text-sm font-semibold text-white ${state.soundOn ? "bg-amber-500 hover:bg-amber-400" : "bg-slate-500 hover:bg-slate-400"}`;
-    }
-
-    function levelUpCheck() {
-      const need = state.level * 2;
-      while (state.xp >= need) {
-        state.xp -= need;
-        state.level += 1;
-        log(`升级成功，阵容人口上限提升到 ${state.level + 2}。`);
-        showBanner(`等级提升！Lv.${state.level}`, "bg-blue-600");
-        playBeep("victory");
-      }
+    function renderGearShop() {
+      ui.gearGrid.innerHTML = '';
+      state.gearShop.forEach((t, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'card text-left rounded-2xl border bg-white p-3 shadow-sm hover:border-slate-300';
+        btn.innerHTML = `
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <div class="text-base font-black text-slate-900">${t.icon} ${t.name}</div>
+              <div class="text-xs text-slate-500 mt-0.5">${t.desc}</div>
+            </div>
+            <div class="text-xs text-slate-400">点击装备</div>
+          </div>
+        `;
+        btn.onclick = () => equipSelectedHero(idx);
+        ui.gearGrid.appendChild(btn);
+      });
     }
 
     function buyHero(idx) {
       if (state.battle) return;
-      const unit = state.shop[idx];
-      const cap = state.level + 2;
-      if (state.heroes.length >= cap) {
-        log("人口已满，先升级人口。");
-        showBanner("人口已满", "bg-slate-700");
-        return;
-      }
-      if (state.gold < unit.cost) {
-        log("金币不足，无法招募。");
-        showBanner("金币不足", "bg-rose-600");
-        return;
-      }
-      state.gold -= unit.cost;
-      const hero = makeUnit(unit, "hero", state.heroes.length);
+      const tpl = state.shop[idx];
+      if (state.gold < tpl.cost) { log('金币不足。'); showBanner('金币不足', 'bg-rose-600'); return; }
+      if (state.heroes.length >= Math.min(6, state.level + 2)) { log('人口已满，先购买经验提升上限。'); showBanner('人口已满', 'bg-slate-700'); return; }
+      const slot = getFreeAllySlot();
+      if (slot < 0) { log('站位已满。'); return; }
+      state.gold -= tpl.cost;
+      const hero = makeHero(tpl, slot);
       state.heroes.push(hero);
-      log(`招募成功：${unit.name}。`);
-      playBeep("hit");
-      updateUI();
-      generateShop();
-    }
-
-    function rerollShop() {
-      if (state.battle) return;
-      if (state.gold < 2) return;
-      state.gold -= 2;
-      log("商店已刷新。");
-      playBeep("hit");
-      generateShop();
+      state.selectedHeroId = hero.id;
+      recalcArmy();
+      makeShopHeroes();
+      log(`招募成功：${tpl.name}。`);
+      playSound('hit');
+      saveGame();
       updateUI();
     }
 
     function levelUpPopulation() {
       if (state.battle) return;
-      if (state.gold < 4) return;
+      if (state.gold < 4) { log('金币不足，无法购买经验。'); return; }
       state.gold -= 4;
       state.xp += 1;
-      log("购买经验，离升级更近一步。");
-      playBeep("hit");
-      levelUpCheck();
+      log('购买经验。');
+      playSound('hit');
+      checkLevelUp();
+      saveGame();
       updateUI();
+    }
+
+    function rerollShop() {
+      if (state.battle) return;
+      if (state.gold < 2) { log('金币不足，无法刷新。'); return; }
+      state.gold -= 2;
+      makeShopHeroes();
+      log('商店已刷新。');
+      playSound('hit');
+      saveGame();
+      updateUI();
+    }
+
+    function equipSelectedHero(gearIdx) {
+      if (state.battle) return;
+      const hero = state.heroes.find(h => h.id === state.selectedHeroId);
+      if (!hero) {
+        log('先选中一名己方单位，再装备。');
+        showBanner('请先选中单位', 'bg-slate-700');
+        return;
+      }
+      const gear = state.gearShop[gearIdx];
+      if (!gear) return;
+      if (hero.items.length >= 2) {
+        log(`${hero.name} 的装备槽已满。`);
+        showBanner('装备已满', 'bg-slate-700');
+        return;
+      }
+      hero.items.push({ key: gear.key, name: gear.name, icon: gear.icon, desc: gear.desc, mod: gear.mod });
+      recalcArmy();
+      log(`${hero.name} 装备了 ${gear.name}。`);
+      playSound('heal');
+      saveGame();
+      updateUI();
+    }
+
+    function checkLevelUp() {
+      let need = state.level * 2;
+      while (state.xp >= need) {
+        state.xp -= need;
+        state.level += 1;
+        log(`等级提升到 Lv.${state.level}，人口上限 +1。`);
+        showBanner(`升级到 Lv.${state.level}`, 'bg-blue-600');
+        playSound('victory');
+        need = state.level * 2;
+      }
+      state.level = clamp(state.level, 1, 6);
     }
 
     function spawnEnemies() {
       state.enemies = [];
-      const count = clamp(2 + Math.floor(state.round / 2), 2, 6);
-      const tier = state.round >= 8 ? 3 : state.round >= 4 ? 2 : 1;
+      const isBossRound = state.round % 5 === 0;
+      const count = isBossRound ? 3 : clamp(2 + Math.floor((state.round - 1) / 2), 2, 6);
+      const pool = Object.values(enemyTemplates).filter(e => e.key !== 'boss');
       for (let i = 0; i < count; i++) {
-        let template;
-        if (state.round >= 10 && i === 0) {
-          template = enemyPool.find(e => e.key === "boss");
-        } else {
-          const pool = tier === 1
-            ? enemyPool.filter(e => e.key !== "boss")
-            : tier === 2
-              ? enemyPool.filter(e => ["orc", "wolf", "witch", "slime"].includes(e.key))
-              : enemyPool.filter(e => e.key !== "boss");
-          template = choice(pool);
+        let tpl;
+        if (isBossRound && i === 0) tpl = enemyTemplates.boss;
+        else tpl = choice(pool);
+        const slot = i % board.enemySlots.length;
+        const e = makeEnemy(tpl, slot);
+        if (isBossRound && i === 0) {
+          e.x = board.enemySlots[0].x + 20;
+          e.y = board.enemySlots[0].y;
         }
-        state.enemies.push(makeUnit(template, "enemy", i));
-        state.enemies[i].x = W - 140 + rand(-10, 10);
-        state.enemies[i].y = clamp(100 + i * 86 + rand(-10, 10), 70, H - 70);
-        state.enemies[i].tx = W - 140;
-        state.enemies[i].ty = 100 + i * 86;
+        state.enemies.push(e);
       }
-      log(`第 ${state.round} 回合，敌军来袭。`);
+      log(isBossRound ? `第 ${state.round} 回合：Boss 关卡。` : `第 ${state.round} 回合，敌军来袭。`);
     }
 
     function startBattle() {
-      if (state.battle || state.heroes.length === 0) return;
+      if (state.battle) return;
+      if (state.heroes.length === 0) { log('请先招募至少一名单位。'); return; }
       state.battle = true;
-      state.battleEnded = false;
       spawnEnemies();
-      showBanner(`第 ${state.round} 回合 开战`, "bg-slate-900");
-      playBeep("hit");
+      showBanner(state.round % 5 === 0 ? 'Boss 关卡开启' : `第 ${state.round} 回合 开战`, state.round % 5 === 0 ? 'bg-rose-700' : 'bg-slate-900');
+      playSound('hit');
       updateUI();
+      saveGame();
     }
 
     function endBattle(victory) {
       state.battle = false;
-      state.battleEnded = true;
-
       if (victory) {
-        const goldReward = 5 + Math.floor(state.round * 1.2);
+        const bossRound = state.round % 5 === 0;
+        const goldReward = (bossRound ? 8 : 5) + Math.floor(state.round * 1.2);
         const xpReward = 1 + Math.floor(state.round / 2);
         state.gold += goldReward;
         state.xp += xpReward;
         state.round += 1;
+        state.wins += 1;
+        state.bestRound = Math.max(state.bestRound, state.round - 1);
         state.lives = Math.min(5, state.lives + 1);
-        log(`胜利！获得 ${goldReward} 金币和 ${xpReward} 经验。`);
-        showBanner("胜利！", "bg-emerald-600");
-        playBeep("victory");
-        levelUpCheck();
+        state.gearShop = buildGearReward(state.round);
+        renderGearShop();
+        log(`胜利！获得 ${goldReward} 金币与 ${xpReward} 经验。`);
+        showBanner(bossRound ? 'Boss 击败！' : '战斗胜利！', bossRound ? 'bg-rose-700' : 'bg-emerald-600');
+        playSound('victory');
       } else {
         state.lives -= 1;
         state.gold = Math.max(0, state.gold - 3);
-        log("战败，城防减少 1 点。");
-        showBanner("战败", "bg-rose-600");
-        playBeep("hit");
+        log('战败，城防减少 1 点。');
+        showBanner('战斗失败', 'bg-rose-600');
+        playSound('hit');
         if (state.lives <= 0) {
-          log("城防归零，游戏重置。");
-          showBanner("游戏结束", "bg-slate-950");
-          setTimeout(resetGame, 900);
+          state.bestRound = Math.max(state.bestRound, state.round - 1);
+          saveGame();
+          updateUI();
+          setTimeout(() => {
+            log('城防归零，已重置。');
+            resetGame(true);
+          }, 900);
           return;
         }
       }
 
-      state.heroes.forEach(h => {
-        if (h.hp > 0) h.hp = Math.max(1, Math.round(h.hp * 0.5));
-      });
-
       state.enemies = [];
-      state.heroes = state.heroes.filter(h => h.hp > 0);
       state.heroes.forEach((h, i) => {
-        h.x = 140;
-        h.y = clamp(100 + i * 86, 70, H - 70);
-        h.tx = 140;
-        h.ty = 100 + i * 86;
-        h.cd = 0.2;
+        h.slot = Math.min(h.slot ?? i, board.allySlots.length - 1);
+        h.x = board.allySlots[h.slot].x;
+        h.y = board.allySlots[h.slot].y;
+        h.cd = Math.max(0.08, h.cooldown * 0.2);
+        h.hp = clamp(Math.round(h.hp * 0.62), 1, h.maxHp);
       });
-
-      generateShop();
+      state.selectedHeroId = state.heroes[0] ? state.heroes[0].id : null;
+      makeShopHeroes();
+      recalcArmy();
+      saveGame();
       updateUI();
     }
 
-    function resetGame() {
-      state.gold = 10;
-      state.round = 1;
-      state.level = 1;
-      state.xp = 0;
-      state.lives = 5;
-      state.battle = false;
-      state.battleEnded = false;
-      state.heroes = [];
-      state.enemies = [];
-      state.particles = [];
-      state.damageTexts = [];
-      state.shop = [];
-      state.messageTimer = 0;
-      ui.logBox.innerHTML = "";
-      log("新开局。");
-      generateShop();
+    function buildGearReward(round) {
+      const count = 3;
+      const picks = [];
+      const weighted = [...equipmentPool];
+      if (round >= 5) weighted.push(equipmentPool.find(e => e.key === 'relic'));
+      if (round >= 8) weighted.push(equipmentPool.find(e => e.key === 'hourglass'));
+      while (picks.length < count) {
+        const t = choice(weighted);
+        if (t && !picks.some(p => p.key === t.key)) picks.push(t);
+      }
+      return picks;
+    }
+
+    function findUnitAtPoint(x, y) {
+      for (let i = state.heroes.length - 1; i >= 0; i--) {
+        const h = state.heroes[i];
+        if (Math.hypot(h.x - x, h.y - y) < 28) return h;
+      }
+      return null;
+    }
+
+    function slotOccupied(slotIdx, excludeId = null) {
+      return state.heroes.find(h => h.slot === slotIdx && h.id !== excludeId) || null;
+    }
+
+    function swapOrPlace(hero, newSlot) {
+      const oldSlot = hero.slot;
+      const other = slotOccupied(newSlot, hero.id);
+      if (other) other.slot = oldSlot;
+      hero.slot = newSlot;
+      syncHeroPositions();
+      recalcArmy();
+      saveGame();
+    }
+
+    function syncHeroPositions() {
+      state.heroes.forEach(h => {
+        if (h.slot != null && board.allySlots[h.slot] && (!state.dragging || state.dragging.heroId !== h.id)) {
+          h.x = board.allySlots[h.slot].x;
+          h.y = board.allySlots[h.slot].y;
+        }
+      });
+    }
+
+    function getMousePos(evt) {
+      const rect = canvas.getBoundingClientRect();
+      const sx = canvas.width / rect.width;
+      const sy = canvas.height / rect.height;
+      return { x: (evt.clientX - rect.left) * sx, y: (evt.clientY - rect.top) * sy };
+    }
+
+    canvas.addEventListener('pointerdown', (evt) => {
+      const p = getMousePos(evt);
+      const unit = findUnitAtPoint(p.x, p.y);
+      if (!unit) return;
+      state.selectedHeroId = unit.id;
+      if (state.battle || unit.side !== 'hero') { updateUI(); return; }
+      state.dragging = {
+        heroId: unit.id,
+        offsetX: unit.x - p.x,
+        offsetY: unit.y - p.y,
+        originSlot: unit.slot,
+      };
+      canvas.setPointerCapture(evt.pointerId);
+      updateUI();
+    });
+
+    canvas.addEventListener('pointermove', (evt) => {
+      if (!state.dragging) return;
+      const hero = state.heroes.find(h => h.id === state.dragging.heroId);
+      if (!hero) return;
+      const p = getMousePos(evt);
+      hero.x = clamp(p.x + state.dragging.offsetX, 40, canvas.width - 40);
+      hero.y = clamp(p.y + state.dragging.offsetY, 40, canvas.height - 40);
+    });
+
+    function endDrag(evt) {
+      if (!state.dragging) return;
+      const hero = state.heroes.find(h => h.id === state.dragging.heroId);
+      if (!hero) { state.dragging = null; return; }
+      const p = getMousePos(evt);
+      const nearest = nearestSlot(p, board.allySlots);
+      if (nearest.dist < 58) {
+        swapOrPlace(hero, nearest.idx);
+      } else {
+        hero.slot = state.dragging.originSlot;
+        syncHeroPositions();
+      }
+      state.dragging = null;
+      recalcArmy();
+      saveGame();
       updateUI();
     }
 
-    function findTarget(unit, list) {
-      const alive = list.filter(u => u.hp > 0);
-      if (alive.length === 0) return null;
+    canvas.addEventListener('pointerup', endDrag);
+    canvas.addEventListener('pointercancel', endDrag);
 
-      if (unit.role === "support" && unit.side === "hero") {
-        const injured = state.heroes.filter(h => h.hp > 0 && h.hp < h.maxHp);
-        if (injured.length > 0) {
-          injured.sort((a, b) => (a.hp / a.maxHp) - (b.hp / b.maxHp));
-          return injured[0];
-        }
-      }
-
-      if (unit.role === "dive") {
-        const backline = alive.filter(u => u.role === "caster" || u.role === "support" || u.role === "ranged");
-        if (backline.length > 0) {
-          backline.sort((a, b) => Math.abs(a.y - unit.y) + Math.abs(a.x - unit.x) - (Math.abs(b.y - unit.y) + Math.abs(b.x - unit.x)));
-          return backline[0];
-        }
-      }
-
-      alive.sort((a, b) => {
-        const da = Math.hypot(a.x - unit.x, a.y - unit.y);
-        const db = Math.hypot(b.x - unit.x, b.y - unit.y);
-        return da - db;
-      });
-      return alive[0];
-    }
-
-    function addDamageText(x, y, text, color = "#fff") {
-      state.damageTexts.push({ x, y, text, color, life: 0.9, vy: -22, vx: rand(-5, 5) });
-    }
-
-    function spawnSpark(x, y, color) {
-      for (let i = 0; i < 5; i++) {
-        state.particles.push({
-          x, y,
-          vx: rand(-55, 55),
-          vy: rand(-55, 55),
-          life: rand(0.25, 0.5),
-          color
-        });
-      }
-    }
-
-    function dealDamage(attacker, target, baseDamage, isCrit = false, splash = false) {
-      const crit = isCrit || Math.random() < attacker.crit;
+    function dealDamage(attacker, target, baseDamage, options = {}) {
+      const crit = options.forceCrit || Math.random() < (attacker.crit || 0);
       let dmg = baseDamage;
       if (crit) dmg = Math.round(dmg * 1.7);
       dmg = Math.max(1, Math.round(dmg - (target.armor || 0)));
@@ -563,74 +951,96 @@
       target.hp -= dmg;
       target.flash = 0.12;
       target.attackFlash = 0.08;
-      addDamageText(target.x, target.y - 24, `${crit ? "暴击 " : ""}-${dmg}`, crit ? "#fda4af" : "#f8fafc");
-      spawnSpark(target.x, target.y, attacker.side === "hero" ? "#fbbf24" : "#f87171");
-      playBeep("hit");
-      if (splash) {
-        const others = (attacker.side === "hero" ? state.enemies : state.heroes).filter(u => u.hp > 0 && u !== target);
-        others.forEach(o => {
-          const d = Math.hypot(o.x - target.x, o.y - target.y);
-          if (d < 70) {
-            const sd = Math.max(1, Math.round(dmg * 0.45));
-            o.hp -= sd;
-            o.flash = 0.08;
-            addDamageText(o.x, o.y - 20, `-${sd}`, "#cbd5e1");
+      addDamageText(target.x, target.y - 24, `${crit ? '暴击 ' : ''}-${dmg}`, crit ? '#fda4af' : '#f8fafc');
+      spawnSpark(target.x, target.y, attacker.side === 'hero' ? '#fbbf24' : '#fb7185');
+      if (attacker.lifesteal) {
+        attacker.hp = Math.min(attacker.maxHp, attacker.hp + Math.max(1, Math.round(dmg * attacker.lifesteal)));
+      }
+      if (options.splash && options.splash > 0) {
+        const friends = attacker.side === 'hero' ? state.enemies : state.heroes;
+        friends.forEach(u => {
+          if (u.hp <= 0 || u.id === target.id) return;
+          const d = Math.hypot(u.x - target.x, u.y - target.y);
+          if (d < 78) {
+            const sd = Math.max(1, Math.round(dmg * options.splash));
+            u.hp -= sd;
+            u.flash = 0.08;
+            addDamageText(u.x, u.y - 20, `-${sd}`, '#cbd5e1');
           }
         });
       }
+      playSound('hit');
     }
 
-    function attackLogic(unit, enemies, allies, dt) {
-      unit.cd -= dt;
-      const target = findTarget(unit, unit.side === "hero" ? enemies : allies);
-      if (!target) return;
-
-      const dist = Math.hypot(target.x - unit.x, target.y - unit.y);
-
-      if (unit.role === "support" && unit.side === "hero" && target !== unit) {
-        if (dist <= unit.range && unit.cd <= 0) {
-          const heal = unit.heal;
-          target.hp = Math.min(target.maxHp, target.hp + heal);
-          target.flash = 0.08;
-          addDamageText(target.x, target.y - 22, `+${heal}`, "#86efac");
-          spawnSpark(target.x, target.y, "#34d399");
-          playBeep("heal");
-          unit.cd = unit.cooldown;
-        } else {
-          moveToward(unit, target, dt, 0.85);
-        }
-        return;
-      }
-
-      if (dist > unit.range) {
-        const speedBoost = unit.role === "dive" ? 1.28 : 1;
-        moveToward(unit, target, dt, speedBoost);
-      } else if (unit.cd <= 0) {
-        const splash = unit.role === "caster";
-        const bonus = unit.role === "dive" ? 1.25 : 1;
-        dealDamage(unit, target, Math.round(unit.atk * bonus), false, splash);
-        unit.cd = unit.cooldown;
-        if (unit.role === "dive") {
-          unit.speed = Math.min(unit.speed + 4, 120);
-        }
-      }
-    }
-
-    function moveToward(unit, target, dt, speedMult = 1) {
+    function moveToward(unit, target, dt, mul = 1) {
       const dx = target.x - unit.x;
       const dy = target.y - unit.y;
       const dist = Math.hypot(dx, dy) || 1;
-      const step = unit.speed * speedMult * dt;
+      const step = unit.speed * mul * dt;
       unit.x += dx / dist * step;
       unit.y += dy / dist * step;
     }
 
-    function updateBattle(dt) {
-      state.heroes.forEach(u => { u.flash = Math.max(0, u.flash - dt); u.attackFlash = Math.max(0, u.attackFlash - dt); });
-      state.enemies.forEach(u => { u.flash = Math.max(0, u.flash - dt); u.attackFlash = Math.max(0, u.attackFlash - dt); });
+    function getNearestEnemy(unit, enemies) {
+      const alive = enemies.filter(e => e.hp > 0);
+      if (!alive.length) return null;
+      alive.sort((a, b) => Math.hypot(a.x - unit.x, a.y - unit.y) - Math.hypot(b.x - unit.x, b.y - unit.y));
+      return alive[0];
+    }
 
-      state.heroes.forEach(h => attackLogic(h, state.enemies, state.heroes, dt));
-      state.enemies.forEach(e => attackLogic(e, state.heroes, state.enemies, dt));
+    function getSupportTarget(unit, allies) {
+      const injured = allies.filter(a => a.hp > 0 && a.hp < a.maxHp);
+      if (!injured.length) return null;
+      injured.sort((a, b) => (a.hp / a.maxHp) - (b.hp / b.maxHp));
+      return injured[0];
+    }
+
+    function stepUnit(unit, enemyList, allyList, dt) {
+      unit.cd -= dt;
+      if (unit.hp <= 0) return;
+      if (unit.boss) {
+        unit.range += 0;
+      }
+
+      if (unit.trait === 'holy') {
+        const healTarget = getSupportTarget(unit, allyList);
+        if (healTarget) {
+          const dist = Math.hypot(healTarget.x - unit.x, healTarget.y - unit.y);
+          if (dist <= unit.range && unit.cd <= 0) {
+            const healAmt = Math.max(1, Math.round(unit.heal));
+            healTarget.hp = Math.min(healTarget.maxHp, healTarget.hp + healAmt);
+            healTarget.flash = 0.08;
+            addDamageText(healTarget.x, healTarget.y - 20, `+${healAmt}`, '#86efac');
+            spawnSpark(healTarget.x, healTarget.y, '#34d399');
+            unit.cd = unit.cooldown;
+            playSound('heal');
+            return;
+          }
+          moveToward(unit, healTarget, dt, 0.85);
+          return;
+        }
+      }
+
+      const target = getNearestEnemy(unit, enemyList);
+      if (!target) return;
+      const dist = Math.hypot(target.x - unit.x, target.y - unit.y);
+      if (dist > unit.range) {
+        moveToward(unit, target, dt, unit.trait === 'shadow' ? 1.18 : 1.0);
+      } else if (unit.cd <= 0) {
+        const splash = unit.trait === 'arcane' || unit.boss;
+        const splashRatio = unit.trait === 'arcane' ? Math.max(0.24, unit.splash || 0.25) : unit.boss ? Math.max(0.42, unit.splash || 0.4) : 0;
+        const damage = Math.round(unit.atk * (unit.trait === 'shadow' ? 1.12 : 1));
+        dealDamage(unit, target, damage, { splash: splashRatio });
+        unit.cd = unit.cooldown;
+      }
+    }
+
+    function updateBattle(dt) {
+      state.heroes.forEach(h => { h.flash = Math.max(0, h.flash - dt); h.attackFlash = Math.max(0, h.attackFlash - dt); });
+      state.enemies.forEach(e => { e.flash = Math.max(0, e.flash - dt); e.attackFlash = Math.max(0, e.attackFlash - dt); });
+
+      state.heroes.forEach(h => stepUnit(h, state.enemies, state.heroes, dt));
+      state.enemies.forEach(e => stepUnit(e, state.heroes, state.enemies, dt));
 
       state.heroes = state.heroes.filter(u => u.hp > 0);
       state.enemies = state.enemies.filter(u => u.hp > 0);
@@ -639,85 +1049,95 @@
         p.life -= dt;
         p.x += p.vx * dt;
         p.y += p.vy * dt;
-        p.vy += 18 * dt;
+        p.vy += 20 * dt;
       });
       state.particles = state.particles.filter(p => p.life > 0);
 
       state.damageTexts.forEach(t => {
         t.life -= dt;
-        t.y += t.vy * dt;
         t.x += t.vx * dt;
+        t.y += t.vy * dt;
       });
       state.damageTexts = state.damageTexts.filter(t => t.life > 0);
 
       if (state.heroes.length === 0 || state.enemies.length === 0) {
-        endBattle(state.enemies.length === 0 && state.heroes.length > 0);
+        endBattle(state.heroes.length > 0 && state.enemies.length === 0);
       }
     }
 
     function drawBackground() {
-      const grad = ctx.createLinearGradient(0, 0, 0, H);
-      grad.addColorStop(0, "#0f172a");
-      grad.addColorStop(1, "#111827");
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, W, H);
+      const g = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      g.addColorStop(0, '#0f172a');
+      g.addColorStop(1, '#111827');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       ctx.save();
-      ctx.globalAlpha = 0.25;
-      for (let i = 0; i < 14; i++) {
-        ctx.fillStyle = i % 2 === 0 ? "#1e293b" : "#0b1220";
-        ctx.fillRect(i * 60, 0, 1, H);
+      ctx.globalAlpha = 0.18;
+      for (let i = 0; i < 15; i++) {
+        ctx.fillStyle = i % 2 === 0 ? '#1e293b' : '#0b1220';
+        ctx.fillRect(i * 62, 0, 1, canvas.height);
       }
-      for (let j = 0; j < 8; j++) {
-        ctx.fillStyle = "#1e293b";
-        ctx.fillRect(0, j * 60, W, 1);
+      for (let j = 0; j < 10; j++) {
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(0, j * 56, canvas.width, 1);
       }
       ctx.restore();
 
-      const laneLeft = 120;
-      const laneMid = W / 2;
-      const laneRight = W - 120;
+      ctx.save();
+      ctx.globalAlpha = 0.5;
+      ctx.fillStyle = 'rgba(34,197,94,.08)';
+      roundRect(22, 90, 420, 390, 28); ctx.fill();
+      ctx.fillStyle = 'rgba(239,68,68,.08)';
+      roundRect(478, 90, 420, 390, 28); ctx.fill();
+      ctx.restore();
 
       ctx.save();
-      ctx.globalAlpha = 0.2;
-      ctx.strokeStyle = "#60a5fa";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(laneLeft, 40);
-      ctx.lineTo(laneLeft, H - 40);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(laneRight, 40);
-      ctx.lineTo(laneRight, H - 40);
-      ctx.stroke();
-      ctx.strokeStyle = "#334155";
-      ctx.beginPath();
-      ctx.moveTo(laneMid, 20);
-      ctx.lineTo(laneMid, H - 20);
-      ctx.stroke();
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = 'bold 13px system-ui, sans-serif';
+      ctx.fillText('你的阵地', 34, 42);
+      ctx.fillText('敌军阵地', canvas.width - 76, 42);
       ctx.restore();
     }
 
+    function drawSlots() {
+      board.allySlots.forEach((s, i) => {
+        ctx.save();
+        ctx.strokeStyle = '#22c55e';
+        ctx.globalAlpha = 0.22;
+        ctx.setLineDash([7, 6]);
+        roundRect(s.x - 32, s.y - 26, 64, 52, 14); ctx.stroke();
+        ctx.restore();
+      });
+      board.enemySlots.forEach((s, i) => {
+        ctx.save();
+        ctx.strokeStyle = '#fb7185';
+        ctx.globalAlpha = 0.18;
+        ctx.setLineDash([7, 6]);
+        roundRect(s.x - 32, s.y - 26, 64, 52, 14); ctx.stroke();
+        ctx.restore();
+      });
+    }
+
     function drawUnit(u) {
-      const w = 58;
-      const h = 46;
+      const w = u.boss ? 78 : 62;
+      const h = u.boss ? 50 : 44;
       const x = u.x - w / 2;
       const y = u.y - h / 2;
 
       ctx.save();
-      if (u.flash > 0) ctx.globalAlpha = 0.85 + Math.sin(performance.now() / 30) * 0.08;
+      if (u.flash > 0) ctx.globalAlpha = 0.9;
 
       roundRect(x, y, w, h, 14);
-      ctx.fillStyle = u.side === "hero" ? "#0f172a" : "#2b1111";
+      ctx.fillStyle = u.side === 'hero' ? '#0f172a' : '#2b1111';
       ctx.fill();
-
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = u.side === "hero" ? u.color : "#fb7185";
+      ctx.lineWidth = u.boss ? 3 : 2;
+      ctx.strokeStyle = u.side === 'hero' ? u.color : (u.boss ? '#f97316' : '#fb7185');
       ctx.stroke();
 
       if (u.attackFlash > 0) {
         ctx.save();
-        ctx.globalAlpha = 0.25;
+        ctx.globalAlpha = 0.18;
         roundRect(x - 4, y - 4, w + 8, h + 8, 18);
         ctx.fillStyle = u.color;
         ctx.fill();
@@ -725,34 +1145,45 @@
       }
 
       ctx.beginPath();
-      ctx.fillStyle = u.color;
-      ctx.arc(u.x - 18, u.y, 12, 0, Math.PI * 2);
+      ctx.fillStyle = u.boss ? '#111827' : u.color;
+      ctx.arc(u.x - (u.boss ? 24 : 18), u.y, u.boss ? 15 : 12, 0, Math.PI * 2);
       ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = `bold ${u.boss ? 18 : 16}px system-ui, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(u.icon, u.x - (u.boss ? 24 : 18), u.y + 0.5);
 
-      ctx.fillStyle = "#fff";
-      ctx.font = "bold 16px system-ui, sans-serif";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(u.icon, u.x - 18, u.y + 0.5);
-
-      ctx.textAlign = "left";
-      ctx.fillStyle = "#e2e8f0";
-      ctx.font = "bold 12px system-ui, sans-serif";
-      ctx.fillText(u.name, x + 14, y + 15);
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = 'bold 12px system-ui, sans-serif';
+      ctx.fillText(u.name, x + (u.boss ? 18 : 14), y + 14);
+      if (u.boss) {
+        ctx.fillStyle = '#fca5a5';
+        ctx.font = '11px system-ui, sans-serif';
+        ctx.fillText('Boss', x + 18, y + 29);
+      }
 
       const hpPct = clamp(u.hp / u.maxHp, 0, 1);
-      ctx.fillStyle = "rgba(255,255,255,.12)";
-      roundRect(x + 13, y + 28, 30, 8, 6);
-      ctx.fill();
-
-      ctx.fillStyle = hpPct > 0.5 ? "#22c55e" : hpPct > 0.25 ? "#f59e0b" : "#ef4444";
-      roundRect(x + 13, y + 28, 30 * hpPct, 8, 6);
-      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,.12)';
+      roundRect(x + (u.boss ? 16 : 13), y + (u.boss ? 31 : 28), u.boss ? 42 : 34, 8, 6); ctx.fill();
+      ctx.fillStyle = hpPct > 0.5 ? '#22c55e' : hpPct > 0.25 ? '#f59e0b' : '#ef4444';
+      roundRect(x + (u.boss ? 16 : 13), y + (u.boss ? 31 : 28), (u.boss ? 42 : 34) * hpPct, 8, 6); ctx.fill();
 
       if (u.shield > 0) {
-        ctx.fillStyle = "#60a5fa";
-        ctx.font = "10px system-ui, sans-serif";
-        ctx.fillText(`护盾 ${u.shield}`, x + 13, y + 43);
+        ctx.fillStyle = '#60a5fa';
+        ctx.font = '10px system-ui, sans-serif';
+        ctx.fillText(`护盾 ${u.shield}`, x + (u.boss ? 16 : 13), y + (u.boss ? 46 : 43));
+      }
+
+      if (u.side === 'hero' && state.selectedHeroId === u.id) {
+        ctx.save();
+        ctx.strokeStyle = '#fde047';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(u.x, u.y, u.boss ? 34 : 28, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
       }
 
       ctx.restore();
@@ -775,80 +1206,367 @@
         ctx.save();
         ctx.globalAlpha = clamp(t.life, 0, 1);
         ctx.fillStyle = t.color;
-        ctx.font = "bold 16px system-ui, sans-serif";
-        ctx.textAlign = "center";
+        ctx.font = 'bold 16px system-ui, sans-serif';
+        ctx.textAlign = 'center';
         ctx.fillText(t.text, t.x, t.y);
         ctx.restore();
       });
     }
 
-    function drawTopHUD() {
+    function drawHUD() {
       ctx.save();
-      ctx.fillStyle = "rgba(15, 23, 42, .45)";
-      roundRect(14, 14, 250, 70, 18);
-      ctx.fill();
+      ctx.fillStyle = 'rgba(15, 23, 42, .48)';
+      roundRect(16, 16, 295, 78, 18); ctx.fill();
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = 'bold 15px system-ui, sans-serif';
+      ctx.fillText(`金币：${state.gold}`, 30, 42);
+      ctx.fillText(`回合：${state.round}  等级：${state.level}`, 30, 64);
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '12px system-ui, sans-serif';
+      ctx.fillText(`人口 ${state.heroes.length}/${Math.min(6, state.level + 2)} · 城防 ${state.lives}/5`, 30, 84);
+      ctx.restore();
 
-      ctx.fillStyle = "#e2e8f0";
-      ctx.font = "bold 15px system-ui, sans-serif";
-      ctx.fillText(`金币：${state.gold}`, 28, 40);
-      ctx.fillText(`回合：${state.round}   等级：${state.level}`, 28, 62);
-
-      ctx.fillStyle = "#94a3b8";
-      ctx.font = "12px system-ui, sans-serif";
-      ctx.fillText(`人口 ${state.heroes.length}/${state.level + 2} · 城防 ${state.lives}/5`, 28, 82);
+      ctx.save();
+      ctx.fillStyle = 'rgba(15, 23, 42, .42)';
+      roundRect(canvas.width - 220, 16, 204, 58, 18); ctx.fill();
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = 'bold 12px system-ui, sans-serif';
+      ctx.fillText('战斗状态', canvas.width - 200, 40);
+      ctx.fillStyle = state.battle ? '#fca5a5' : '#86efac';
+      ctx.font = 'bold 15px system-ui, sans-serif';
+      ctx.fillText(state.battle ? '进行中' : '准备阶段', canvas.width - 200, 62);
       ctx.restore();
     }
 
     function draw() {
       drawBackground();
-
+      drawSlots();
       state.heroes.forEach(drawUnit);
       state.enemies.forEach(drawUnit);
+      drawParticles();
+      drawDamageTexts();
+      drawHUD();
 
+      if (state.battleBannerTimer > 0) {
+        state.battleBannerTimer -= (performance.now() - state.lastFrame) / 1000;
+        if (state.battleBannerTimer <= 0) ui.battleBanner.classList.add('hidden');
+      }
+    }
+
+    function updateSynergyUI() {
+      const counts = getTraitCounts();
+      const chips = [];
+      const map = [
+        ['front', '前排'],
+        ['range', '远程'],
+        ['arcane', '法术'],
+        ['shadow', '刺客'],
+        ['holy', '神圣'],
+      ];
+      map.forEach(([trait, label]) => {
+        const count = counts[trait] || 0;
+        const bonus = getTraitBonus(trait, count);
+        if (count < 2) return;
+        let tip = '';
+        if (trait === 'front') tip = `+${Math.round((bonus.hpMult - 1) * 100)}%HP/+${bonus.armorAdd}甲`;
+        if (trait === 'range') tip = `+${Math.round((bonus.atkMult - 1) * 100)}%ATK/+${bonus.rangeAdd}射程`;
+        if (trait === 'arcane') tip = `溅射强化`;
+        if (trait === 'shadow') tip = `暴击+${Math.round(bonus.critAdd * 100)}%`;
+        if (trait === 'holy') tip = `治疗强化`;
+        chips.push(`<span class="chip">${label} ${count}  <b class="text-slate-900">${tip}</b></span>`);
+      });
+      ui.synergyStrip.innerHTML = chips.length ? chips.join('') : '<span class="text-sm text-slate-500">暂无激活羁绊</span>';
+    }
+
+    function updateSelectedHeroUI() {
+      const hero = state.heroes.find(h => h.id === state.selectedHeroId);
+      if (!hero) {
+        ui.selectedHeroText.textContent = '未选择单位';
+        return;
+      }
+      const items = hero.items.map(it => `${it.icon} ${it.name}`).join(' · ') || '无装备';
+      ui.selectedHeroText.textContent = `${hero.icon} ${hero.name} ｜ ${hero.trait === 'front' ? '前排' : hero.trait === 'range' ? '远程' : hero.trait === 'arcane' ? '法术' : hero.trait === 'shadow' ? '刺客' : '治疗'} ｜ ${items}`;
+    }
+
+    function updateLivesUI() {
+      ui.livesBar.innerHTML = '';
+      for (let i = 0; i < 5; i++) {
+        const dot = document.createElement('div');
+        dot.className = `w-4 h-4 rounded-full border ${i < state.lives ? 'bg-rose-500 border-rose-600' : 'bg-slate-200 border-slate-300'}`;
+        ui.livesBar.appendChild(dot);
+      }
+    }
+
+    function updateUI() {
+      ui.goldText.textContent = state.gold;
+      ui.populationText.textContent = state.heroes.length;
+      ui.populationCapText.textContent = Math.min(6, state.level + 2);
+      ui.levelText.textContent = state.level;
+      ui.roundTextInline.textContent = state.round;
+      ui.levelTextInline.textContent = state.level;
+      ui.xpText.textContent = `${state.xp}/${state.level * 2}`;
+      ui.bestRoundText.textContent = state.bestRound;
+      ui.winText.textContent = state.wins;
+      ui.soundBtn.textContent = `音效：${state.soundOn ? '开' : '关'}`;
+      ui.battleBtn.disabled = state.battle || state.heroes.length === 0;
+      ui.levelBtn.disabled = state.battle || state.gold < 4;
+      ui.refreshBtn.disabled = state.battle || state.gold < 2;
+      ui.battleBtn.className = `rounded-xl py-2.5 text-sm font-semibold text-white ${!state.battle && state.heroes.length > 0 ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-emerald-300 cursor-not-allowed'}`;
+      ui.levelBtn.className = `rounded-xl py-2.5 text-sm font-semibold text-white ${!state.battle && state.gold >= 4 ? 'bg-blue-600 hover:bg-blue-500' : 'bg-blue-300 cursor-not-allowed'}`;
+      ui.refreshBtn.className = `rounded-xl py-2.5 text-sm font-semibold text-white ${!state.battle && state.gold >= 2 ? 'bg-slate-900 hover:bg-slate-800' : 'bg-slate-300 cursor-not-allowed'}`;
+      updateLivesUI();
+      updateSynergyUI();
+      updateSelectedHeroUI();
+      ui.tabBtns.forEach(btn => {
+        const active = btn.dataset.tab === state.tab;
+        btn.className = `tabBtn rounded-full px-3 py-1.5 text-sm font-semibold ${active ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'}`;
+      });
+      ui.recruitTab.classList.toggle('hidden', state.tab !== 'recruit');
+      ui.gearTab.classList.toggle('hidden', state.tab !== 'gear');
+      ui.saveTab.classList.toggle('hidden', state.tab !== 'save');
+    }
+
+    function hitTestCanvas(evt) {
+      const rect = canvas.getBoundingClientRect();
+      const sx = canvas.width / rect.width;
+      const sy = canvas.height / rect.height;
+      return { x: (evt.clientX - rect.left) * sx, y: (evt.clientY - rect.top) * sy };
+    }
+
+    function findHeroAtPoint(x, y) {
+      for (let i = state.heroes.length - 1; i >= 0; i--) {
+        const h = state.heroes[i];
+        const r = h.boss ? 34 : 28;
+        if (Math.hypot(h.x - x, h.y - y) <= r) return h;
+      }
+      return null;
+    }
+
+    canvas.addEventListener('pointerdown', (evt) => {
+      const p = hitTestCanvas(evt);
+      const unit = findHeroAtPoint(p.x, p.y);
+      if (!unit) return;
+      state.selectedHeroId = unit.id;
+      if (state.battle || unit.side !== 'hero') {
+        updateUI();
+        return;
+      }
+      state.dragging = {
+        heroId: unit.id,
+        offsetX: unit.x - p.x,
+        offsetY: unit.y - p.y,
+        originSlot: unit.slot,
+      };
+      canvas.setPointerCapture(evt.pointerId);
+      updateUI();
+    });
+
+    canvas.addEventListener('pointermove', (evt) => {
+      if (!state.dragging) return;
+      const hero = state.heroes.find(h => h.id === state.dragging.heroId);
+      if (!hero) return;
+      const p = hitTestCanvas(evt);
+      hero.x = clamp(p.x + state.dragging.offsetX, 40, canvas.width - 40);
+      hero.y = clamp(p.y + state.dragging.offsetY, 56, canvas.height - 40);
+    });
+
+    function finishDrag(evt) {
+      if (!state.dragging) return;
+      const hero = state.heroes.find(h => h.id === state.dragging.heroId);
+      if (!hero) { state.dragging = null; return; }
+      const p = hitTestCanvas(evt);
+      const nearest = nearestSlot(p, board.allySlots);
+      if (nearest.dist < 60) {
+        const other = slotOccupied(nearest.idx, hero.id);
+        if (other) other.slot = state.dragging.originSlot;
+        hero.slot = nearest.idx;
+      } else {
+        hero.slot = state.dragging.originSlot;
+      }
+      state.dragging = null;
+      syncHeroPositions();
+      recalcArmy();
+      saveGame();
+      updateUI();
+    }
+
+    canvas.addEventListener('pointerup', finishDrag);
+    canvas.addEventListener('pointercancel', finishDrag);
+
+    function buildEnemyWave() {
+      state.enemies = [];
+      const isBossRound = state.round % 5 === 0;
+      const count = isBossRound ? 3 : clamp(2 + Math.floor((state.round - 1) / 2), 2, 6);
+      const pool = [enemyTemplates.slime, enemyTemplates.orc, enemyTemplates.witch, enemyTemplates.wolf];
+      for (let i = 0; i < count; i++) {
+        const tpl = isBossRound && i === 0 ? enemyTemplates.boss : choice(pool);
+        const slot = i % board.enemySlots.length;
+        const enemy = makeEnemy(tpl, slot);
+        if (isBossRound && i === 0) {
+          enemy.x = board.enemySlots[0].x + 20;
+          enemy.y = board.enemySlots[0].y;
+        }
+        state.enemies.push(enemy);
+      }
+      log(isBossRound ? `第 ${state.round} 回合：Boss 关卡。` : `第 ${state.round} 回合，敌军来袭。`);
+    }
+
+    function getNearestTarget(unit, list) {
+      const alive = list.filter(u => u.hp > 0);
+      if (!alive.length) return null;
+      alive.sort((a, b) => Math.hypot(a.x - unit.x, a.y - unit.y) - Math.hypot(b.x - unit.x, b.y - unit.y));
+      return alive[0];
+    }
+
+    function getSupportTarget(unit, allies) {
+      const injured = allies.filter(a => a.hp > 0 && a.hp < a.maxHp);
+      if (!injured.length) return null;
+      injured.sort((a, b) => (a.hp / a.maxHp) - (b.hp / b.maxHp));
+      return injured[0];
+    }
+
+    function stepUnit(unit, enemies, allies, dt) {
+      unit.cd -= dt;
+      if (unit.hp <= 0) return;
+
+      if (unit.trait === 'holy') {
+        const healTarget = getSupportTarget(unit, allies);
+        if (healTarget) {
+          const dist = Math.hypot(healTarget.x - unit.x, healTarget.y - unit.y);
+          if (dist <= unit.range && unit.cd <= 0) {
+            const healAmt = Math.max(1, Math.round(unit.heal));
+            healTarget.hp = Math.min(healTarget.maxHp, healTarget.hp + healAmt);
+            healTarget.flash = 0.08;
+            addDamageText(healTarget.x, healTarget.y - 20, `+${healAmt}`, '#86efac');
+            spawnSpark(healTarget.x, healTarget.y, '#34d399');
+            unit.cd = unit.cooldown;
+            playSound('heal');
+            return;
+          }
+          moveToward(unit, healTarget, dt, 0.84);
+          return;
+        }
+      }
+
+      const target = getNearestTarget(unit, enemies);
+      if (!target) return;
+      const dist = Math.hypot(target.x - unit.x, target.y - unit.y);
+      if (dist > unit.range) {
+        moveToward(unit, target, dt, unit.trait === 'shadow' ? 1.22 : 1.0);
+      } else if (unit.cd <= 0) {
+        const damage = Math.round(unit.atk * (unit.trait === 'shadow' ? 1.12 : 1));
+        const splashRatio = unit.trait === 'arcane' ? Math.max(0.25, unit.splash || 0.25) : unit.boss ? Math.max(0.40, unit.splash || 0.4) : 0;
+        dealDamage(unit, target, damage, { splash: splashRatio });
+        unit.cd = unit.cooldown;
+      }
+    }
+
+    function updateBattle(dt) {
+      state.heroes.forEach(u => { u.flash = Math.max(0, u.flash - dt); u.attackFlash = Math.max(0, u.attackFlash - dt); });
+      state.enemies.forEach(u => { u.flash = Math.max(0, u.flash - dt); u.attackFlash = Math.max(0, u.attackFlash - dt); });
+
+      state.heroes.forEach(h => stepUnit(h, state.enemies, state.heroes, dt));
+      state.enemies.forEach(e => stepUnit(e, state.heroes, state.enemies, dt));
+
+      state.heroes = state.heroes.filter(u => u.hp > 0);
+      state.enemies = state.enemies.filter(u => u.hp > 0);
+
+      state.particles.forEach(p => {
+        p.life -= dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.vy += 18 * dt;
+      });
+      state.particles = state.particles.filter(p => p.life > 0);
+
+      state.damageTexts.forEach(t => {
+        t.life -= dt;
+        t.x += t.vx * dt;
+        t.y += t.vy * dt;
+      });
+      state.damageTexts = state.damageTexts.filter(t => t.life > 0);
+
+      if (state.heroes.length === 0 || state.enemies.length === 0) {
+        endBattle(state.heroes.length > 0 && state.enemies.length === 0);
+      }
+    }
+
+    function drawBar(x, y, w, h, pct, fg, bg = 'rgba(255,255,255,.12)') {
+      ctx.fillStyle = bg; roundRect(x, y, w, h, 6); ctx.fill();
+      ctx.fillStyle = fg; roundRect(x, y, w * clamp(pct, 0, 1), h, 6); ctx.fill();
+    }
+
+    function drawTopHUD() {
+      ctx.save();
+      ctx.fillStyle = 'rgba(15, 23, 42, .48)';
+      roundRect(16, 16, 286, 78, 18); ctx.fill();
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = 'bold 15px system-ui, sans-serif';
+      ctx.fillText(`金币：${state.gold}`, 30, 42);
+      ctx.fillText(`回合：${state.round}  等级：${state.level}`, 30, 64);
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '12px system-ui, sans-serif';
+      ctx.fillText(`人口 ${state.heroes.length}/${Math.min(6, state.level + 2)} · 城防 ${state.lives}/5`, 30, 84);
+      ctx.restore();
+
+      ctx.save();
+      ctx.fillStyle = 'rgba(15, 23, 42, .44)';
+      roundRect(canvas.width - 228, 16, 214, 58, 18); ctx.fill();
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = 'bold 12px system-ui, sans-serif';
+      ctx.fillText('阶段', canvas.width - 208, 40);
+      ctx.fillStyle = state.battle ? '#fca5a5' : '#86efac';
+      ctx.font = 'bold 16px system-ui, sans-serif';
+      ctx.fillText(state.battle ? '战斗中' : '准备中', canvas.width - 208, 62);
+      ctx.restore();
+    }
+
+    function draw() {
+      drawBackground();
+      drawSlots();
+      state.heroes.forEach(drawUnit);
+      state.enemies.forEach(drawUnit);
       drawParticles();
       drawDamageTexts();
       drawTopHUD();
-
-      if (state.messageTimer > 0) {
-        state.messageTimer -= (performance.now() - state.lastFrame) / 1000;
-        if (state.messageTimer <= 0) ui.battleBanner.classList.add("hidden");
-      }
-
-      ctx.save();
-      ctx.fillStyle = "#94a3b8";
-      ctx.font = "12px system-ui, sans-serif";
-      ctx.textAlign = "right";
-      ctx.fillText("左侧：英雄阵营    右侧：敌方阵营", W - 18, H - 16);
-      ctx.restore();
     }
 
     function frame(now) {
       const dt = Math.min(0.033, (now - state.lastFrame) / 1000);
       state.lastFrame = now;
-
       if (state.battle) updateBattle(dt);
       draw();
       updateUI();
       requestAnimationFrame(frame);
     }
 
-    ui.refreshBtn.onclick = rerollShop;
-    ui.levelBtn.onclick = levelUpPopulation;
     ui.battleBtn.onclick = startBattle;
-    ui.soundBtn.onclick = () => {
-      state.soundOn = !state.soundOn;
-      updateUI();
-      log(state.soundOn ? "音效已开启。" : "音效已关闭。");
-    };
-    ui.clearLogBtn.onclick = () => {
-      ui.logBox.innerHTML = "";
-      log("日志已清空。");
-    };
+    ui.levelBtn.onclick = levelUpPopulation;
+    ui.refreshBtn.onclick = rerollShop;
+    ui.soundBtn.onclick = () => { state.soundOn = !state.soundOn; updateUI(); log(state.soundOn ? '音效已开启。' : '音效已关闭。'); };
+    ui.saveBtn.onclick = () => { saveGame(); log('已手动保存。'); };
+    ui.loadBtn.onclick = () => { loadGame(false); };
+    ui.resetBtn.onclick = () => { resetGame(true); log('已开启新开局。'); };
+    ui.clearLogBtn.onclick = () => { ui.logBox.innerHTML = ''; log('日志已清空。'); };
+    ui.tabBtns.forEach(btn => btn.onclick = () => setTab(btn.dataset.tab));
 
-    generateShop();
-    updateUI();
-    log("欢迎来到战境。先招募，再开战。");
-    requestAnimationFrame(frame);
+    function init() {
+      const loaded = loadGame(true);
+      if (!loaded) {
+        makeShopHeroes();
+        makeGearShop();
+        recalcArmy();
+        updateUI();
+        log('欢迎来到战境。先招募，再布阵，再开战。');
+      } else {
+        log('已读取上次存档。');
+      }
+      setTab('recruit');
+      updateUI();
+      requestAnimationFrame(frame);
+    }
+
+    init();
   </script>
 </body>
 </html>
