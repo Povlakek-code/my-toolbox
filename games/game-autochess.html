@@ -1,146 +1,854 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>自走棋：英雄战境 - 极简工具箱</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>自走棋：英雄战境 - 强化版</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    body {
+      background:
+        radial-gradient(circle at top, rgba(148,163,184,.25), transparent 32%),
+        linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+    }
+    canvas {
+      image-rendering: auto;
+      display: block;
+    }
+    .glass {
+      backdrop-filter: blur(12px);
+      background: rgba(255,255,255,.82);
+    }
+    .unit-card {
+      transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    }
+    .unit-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 25px rgba(15, 23, 42, .08);
+    }
+  </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen p-4 flex flex-col items-center justify-center">
-    <div class="max-w-md w-full bg-white p-5 rounded-2xl shadow-xl border text-center">
-        <div class="text-left mb-3 flex justify-between items-center">
-            <div>
-                <a href="./index.html" class="text-sm text-blue-600 hover:underline">← 返回首页</a>
-                <h2 class="text-lg font-bold text-slate-900 mt-0.5">⚔️ 英雄自走棋</h2>
+<body class="min-h-screen p-4 md:p-6 text-slate-800">
+  <div class="max-w-6xl mx-auto grid lg:grid-cols-[1.35fr_0.95fr] gap-4">
+    <div class="glass border border-white/70 rounded-3xl shadow-xl p-4 md:p-5">
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <div>
+          <a href="./index.html" class="text-sm text-blue-600 hover:underline">← 返回首页</a>
+          <h1 class="text-2xl md:text-3xl font-black text-slate-900 mt-1">⚔️ 英雄自走棋：战境升级版</h1>
+          <p class="text-sm text-slate-500 mt-1">招募、布阵、升级、开战，尽量撑到更高回合。</p>
+        </div>
+        <div class="text-right">
+          <div class="text-sm text-slate-500">城防</div>
+          <div id="livesBar" class="flex gap-1 justify-end mt-1"></div>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-[1fr_auto] gap-4 items-start">
+        <div class="relative mx-auto">
+          <div class="rounded-3xl bg-slate-950 p-2 shadow-2xl border border-slate-800">
+            <canvas id="gameCanvas" width="820" height="500" class="rounded-2xl bg-slate-900"></canvas>
+          </div>
+          <div id="battleBanner" class="absolute top-4 left-1/2 -translate-x-1/2 hidden px-4 py-2 rounded-full text-white font-bold shadow-lg"></div>
+        </div>
+
+        <div class="w-full md:w-[250px] space-y-3">
+          <div class="rounded-2xl bg-white border p-4 shadow-sm">
+            <div class="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <div class="text-slate-500">金币</div>
+                <div class="text-2xl font-black text-amber-500">💰 <span id="goldText">10</span></div>
+              </div>
+              <div>
+                <div class="text-slate-500">回合</div>
+                <div class="text-2xl font-black text-slate-900">#<span id="roundText">1</span></div>
+              </div>
+              <div>
+                <div class="text-slate-500">等级</div>
+                <div class="text-2xl font-black text-blue-600">Lv.<span id="levelText">1</span></div>
+              </div>
+              <div>
+                <div class="text-slate-500">人口</div>
+                <div class="text-2xl font-black text-emerald-600"><span id="populationText">0</span>/<span id="populationCapText">3</span></div>
+              </div>
             </div>
-            <div class="text-sm font-bold text-amber-500">💰 金币: <span id="chess-gold">10</span></div>
-        </div>
 
-        <div class="bg-slate-900 rounded-xl overflow-hidden inline-block p-1">
-            <canvas id="chessCanvas" width="360" height="260"></canvas>
-        </div>
+            <div class="mt-4">
+              <div class="flex items-center justify-between text-sm text-slate-500 mb-1">
+                <span>经验</span><span id="xpText">0/2</span>
+              </div>
+              <div class="h-3 rounded-full bg-slate-100 overflow-hidden border">
+                <div id="xpBar" class="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400" style="width:0%"></div>
+              </div>
+            </div>
 
-        <!-- 招募商店区 -->
-        <div class="grid grid-cols-2 gap-2 mt-3">
-            <button onclick="buyHero('warrior')" class="bg-amber-50 hover:bg-amber-100 border border-amber-200 p-2 rounded-xl text-left text-xs transition-colors">
-                <div class="font-bold text-amber-800">⚔️ 购买战士 (3金)</div>
-                <div class="text-slate-500">近战高血量，自带嘲讽</div>
-            </button>
-            <button onclick="buyHero('mage')" class="bg-purple-50 hover:bg-purple-100 border border-purple-200 p-2 rounded-xl text-left text-xs transition-colors">
-                <div class="font-bold text-purple-800">🔮 购买法师 (4金)</div>
-                <div class="text-slate-500">远程爆发，全屏雷击</div>
-            </button>
-        </div>
+            <div class="grid grid-cols-2 gap-2 mt-4">
+              <button id="refreshBtn" class="rounded-xl bg-slate-900 hover:bg-slate-800 text-white py-2.5 text-sm font-semibold">刷新商店 (2金)</button>
+              <button id="levelBtn" class="rounded-xl bg-blue-600 hover:bg-blue-500 text-white py-2.5 text-sm font-semibold">升级人口 (4金)</button>
+            </div>
 
-        <button onclick="startChessBattle()" class="w-full mt-4 bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-xl font-medium transition-all shadow-md">
-            进入战斗交锋
-        </button>
+            <div class="grid grid-cols-2 gap-2 mt-2">
+              <button id="battleBtn" class="rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 text-sm font-semibold">开始战斗</button>
+              <button id="soundBtn" class="rounded-xl bg-amber-500 hover:bg-amber-400 text-white py-2.5 text-sm font-semibold">音效：开</button>
+            </div>
+          </div>
+
+          <div class="rounded-2xl bg-white border p-4 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="font-bold text-slate-900">战斗日志</h2>
+              <button id="clearLogBtn" class="text-xs text-slate-500 hover:text-slate-700">清空</button>
+            </div>
+            <div id="logBox" class="text-xs leading-5 text-slate-600 space-y-1 max-h-44 overflow-auto pr-1"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <script>
-        const canvas = document.getElementById("chessCanvas");
-        const ctx = canvas.getContext("2d");
+    <div class="glass border border-white/70 rounded-3xl shadow-xl p-4 md:p-5">
+      <div class="flex items-end justify-between mb-3">
+        <div>
+          <h2 class="text-xl font-black text-slate-900">商店招募</h2>
+          <p class="text-sm text-slate-500">点击卡牌购买；战斗中无法招募。</p>
+        </div>
+        <div class="text-xs text-slate-500 text-right">
+          <div>当前：<span id="phaseText" class="font-bold text-slate-800">准备阶段</span></div>
+          <div>敌人强度随回合上升</div>
+        </div>
+      </div>
 
-        let gold = 10, heros = [], enemies = [], chessLoop = null, isFighting = false;
+      <div id="shopGrid" class="grid gap-3"></div>
 
-        function buyHero(type) {
-            if (isFighting) return;
-            if (type === 'warrior' && gold >= 3) {
-                gold -= 3;
-                heros.push({ x: 40, y: 50 + heros.length * 50, type: 'warrior', hp: 200, maxHp: 200, range: 30, atk: 15, color: '#3b82f6' });
-            } else if (type === 'mage' && gold >= 4) {
-                gold -= 4;
-                heros.push({ x: 40, y: 50 + heros.length * 50, type: 'mage', hp: 100, maxHp: 100, range: 140, atk: 35, color: '#a855f7' });
-            }
-            document.getElementById("chess-gold").innerText = gold;
-            drawBoard();
+      <div class="mt-4 rounded-2xl border bg-slate-50 p-4">
+        <h3 class="font-bold text-slate-900 mb-2">阵容说明</h3>
+        <div class="grid grid-cols-2 gap-2 text-sm text-slate-600">
+          <div>🛡️ 盾卫：高血量，前排抗伤</div>
+          <div>⚔️ 剑士：近战均衡，稳定输出</div>
+          <div>🏹 弓手：远程射击，攻速较快</div>
+          <div>🔥 法师：高爆发，附带溅射</div>
+          <div>🗡️ 刺客：高暴击，快速切后排</div>
+          <div>✨ 祭司：持续治疗，保住前线</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const ui = {
+      goldText: document.getElementById("goldText"),
+      roundText: document.getElementById("roundText"),
+      levelText: document.getElementById("levelText"),
+      populationText: document.getElementById("populationText"),
+      populationCapText: document.getElementById("populationCapText"),
+      xpText: document.getElementById("xpText"),
+      xpBar: document.getElementById("xpBar"),
+      shopGrid: document.getElementById("shopGrid"),
+      phaseText: document.getElementById("phaseText"),
+      logBox: document.getElementById("logBox"),
+      battleBtn: document.getElementById("battleBtn"),
+      refreshBtn: document.getElementById("refreshBtn"),
+      levelBtn: document.getElementById("levelBtn"),
+      soundBtn: document.getElementById("soundBtn"),
+      clearLogBtn: document.getElementById("clearLogBtn"),
+      livesBar: document.getElementById("livesBar"),
+      battleBanner: document.getElementById("battleBanner"),
+    };
+
+    const W = canvas.width;
+    const H = canvas.height;
+
+    const state = {
+      gold: 10,
+      round: 1,
+      level: 1,
+      xp: 0,
+      lives: 5,
+      soundOn: true,
+      battle: false,
+      battleEnded: false,
+      messageTimer: 0,
+      shop: [],
+      heroes: [],
+      enemies: [],
+      particles: [],
+      damageTexts: [],
+      lastFrame: performance.now(),
+    };
+
+    const heroPool = [
+      { key: "warrior", name: "剑士", icon: "⚔️", cost: 3, color: "#2563eb", hp: 180, atk: 22, range: 34, speed: 52, cooldown: 0.8, role: "front", crit: 0.08, armor: 5 },
+      { key: "tank", name: "盾卫", icon: "🛡️", cost: 4, color: "#0f766e", hp: 260, atk: 16, range: 30, speed: 42, cooldown: 1.0, role: "front", crit: 0.05, armor: 9 },
+      { key: "archer", name: "弓手", icon: "🏹", cost: 4, color: "#d97706", hp: 120, atk: 18, range: 190, speed: 58, cooldown: 0.55, role: "ranged", crit: 0.12, armor: 1 },
+      { key: "mage", name: "法师", icon: "🔥", cost: 5, color: "#a855f7", hp: 100, atk: 34, range: 220, speed: 50, cooldown: 1.15, role: "caster", crit: 0.08, armor: 0 },
+      { key: "assassin", name: "刺客", icon: "🗡️", cost: 5, color: "#ef4444", hp: 110, atk: 28, range: 42, speed: 92, cooldown: 0.65, role: "dive", crit: 0.35, armor: 0 },
+      { key: "priest", name: "祭司", icon: "✨", cost: 4, color: "#14b8a6", hp: 110, atk: 10, range: 200, speed: 48, cooldown: 0.95, role: "support", heal: 24, crit: 0.0, armor: 1 },
+    ];
+
+    const enemyPool = [
+      { key: "slime", name: "史莱姆", icon: "🟢", color: "#ef4444", hp: 120, atk: 12, range: 30, speed: 44, cooldown: 0.95, crit: 0.04, armor: 1 },
+      { key: "orc", name: "兽人", icon: "👹", color: "#dc2626", hp: 170, atk: 18, range: 34, speed: 46, cooldown: 0.9, crit: 0.06, armor: 3 },
+      { key: "witch", name: "巫妖", icon: "🧙", color: "#7c3aed", hp: 105, atk: 26, range: 210, speed: 42, cooldown: 1.15, crit: 0.1, armor: 0 },
+      { key: "wolf", name: "魔狼", icon: "🐺", color: "#fb7185", hp: 140, atk: 20, range: 40, speed: 72, cooldown: 0.75, crit: 0.12, armor: 1 },
+      { key: "boss", name: "首领", icon: "👑", color: "#991b1b", hp: 380, atk: 30, range: 44, speed: 36, cooldown: 1.05, crit: 0.15, armor: 6 },
+    ];
+
+    function log(text) {
+      const node = document.createElement("div");
+      node.textContent = `• ${text}`;
+      ui.logBox.prepend(node);
+      while (ui.logBox.children.length > 8) ui.logBox.removeChild(ui.logBox.lastChild);
+    }
+
+    function showBanner(text, bg = "bg-slate-900") {
+      ui.battleBanner.className = `absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-white font-bold shadow-lg ${bg}`;
+      ui.battleBanner.textContent = text;
+      ui.battleBanner.classList.remove("hidden");
+      state.messageTimer = 1.2;
+    }
+
+    function playBeep(type = "hit") {
+      if (!state.soundOn) return;
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ac = playBeep._ac || (playBeep._ac = new AudioCtx());
+      const o = ac.createOscillator();
+      const g = ac.createGain();
+      o.type = type === "victory" ? "triangle" : type === "heal" ? "sine" : "square";
+      o.frequency.value = type === "victory" ? 660 : type === "heal" ? 520 : 240;
+      g.gain.value = type === "victory" ? 0.035 : type === "heal" ? 0.02 : 0.03;
+      o.connect(g);
+      g.connect(ac.destination);
+      o.start();
+      o.stop(ac.currentTime + (type === "victory" ? 0.12 : 0.06));
+    }
+
+    function clamp(v, min, max) {
+      return Math.max(min, Math.min(max, v));
+    }
+
+    function rand(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function choice(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function roundRect(x, y, w, h, r = 16) {
+      const rr = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + rr, y);
+      ctx.arcTo(x + w, y, x + w, y + h, rr);
+      ctx.arcTo(x + w, y + h, x, y + h, rr);
+      ctx.arcTo(x, y + h, x, y, rr);
+      ctx.arcTo(x, y, x + w, y, rr);
+      ctx.closePath();
+    }
+
+    function makeUnit(template, side, index) {
+      const isHero = side === "hero";
+      const startX = isHero ? 140 : W - 140;
+      const startY = 100 + index * 86;
+      return {
+        side,
+        key: template.key,
+        name: template.name,
+        icon: template.icon,
+        color: template.color,
+        x: startX + rand(-8, 8),
+        y: clamp(startY + rand(-12, 12), 70, H - 70),
+        tx: startX,
+        ty: startY,
+        hp: template.hp,
+        maxHp: template.hp,
+        atk: template.atk,
+        range: template.range,
+        speed: template.speed,
+        cooldown: template.cooldown,
+        cd: rand(0, template.cooldown * 0.6),
+        crit: template.crit || 0,
+        armor: template.armor || 0,
+        role: template.role || "front",
+        heal: template.heal || 0,
+        alive: true,
+        flash: 0,
+        attackFlash: 0,
+        shield: 0,
+        targetIndex: -1,
+      };
+    }
+
+    function generateShop() {
+      const picks = [];
+      const pool = [...heroPool];
+      while (picks.length < 3) {
+        const t = choice(pool);
+        if (!picks.includes(t)) picks.push(t);
+      }
+      state.shop = picks;
+      renderShop();
+    }
+
+    function renderShop() {
+      ui.shopGrid.innerHTML = "";
+      state.shop.forEach((unit, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "unit-card text-left rounded-2xl border bg-white p-4 shadow-sm hover:border-slate-300";
+        btn.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="text-lg font-black text-slate-900">${unit.icon} ${unit.name}</div>
+              <div class="text-xs text-slate-500 mt-1">${unit.cost} 金币 · ${unit.role === "support" ? "治疗辅助" : unit.role === "caster" ? "法术输出" : unit.role === "dive" ? "切后排" : unit.role === "ranged" ? "远程输出" : "前排单位"}</div>
+            </div>
+            <div class="text-right">
+              <div class="text-sm font-bold text-amber-500">💰 ${unit.cost}</div>
+              <div class="text-xs text-slate-400">点击招募</div>
+            </div>
+          </div>
+          <div class="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-600">
+            <div>HP <b class="text-slate-900">${unit.hp}</b></div>
+            <div>ATK <b class="text-slate-900">${unit.atk}</b></div>
+            <div>RNG <b class="text-slate-900">${Math.round(unit.range)}</b></div>
+            <div>SPD <b class="text-slate-900">${unit.speed}</b></div>
+          </div>
+        `;
+        btn.onclick = () => buyHero(idx);
+        ui.shopGrid.appendChild(btn);
+      });
+    }
+
+    function updateUI() {
+      ui.goldText.textContent = state.gold;
+      ui.roundText.textContent = state.round;
+      ui.levelText.textContent = state.level;
+      ui.populationText.textContent = state.heroes.length;
+      ui.populationCapText.textContent = state.level + 2;
+
+      const nextXp = state.level * 2;
+      ui.xpText.textContent = `${state.xp}/${nextXp}`;
+      ui.xpBar.style.width = `${clamp((state.xp / nextXp) * 100, 0, 100)}%`;
+
+      ui.phaseText.textContent = state.battle ? "战斗阶段" : "准备阶段";
+      ui.soundBtn.textContent = `音效：${state.soundOn ? "开" : "关"}`;
+
+      ui.livesBar.innerHTML = "";
+      for (let i = 0; i < 5; i++) {
+        const dot = document.createElement("div");
+        dot.className = `w-4 h-4 rounded-full border ${i < state.lives ? "bg-rose-500 border-rose-600" : "bg-slate-200 border-slate-300"}`;
+        ui.livesBar.appendChild(dot);
+      }
+
+      ui.levelBtn.disabled = state.gold < 4 || state.battle;
+      ui.refreshBtn.disabled = state.gold < 2 || state.battle;
+      ui.battleBtn.disabled = state.battle || state.heroes.length === 0;
+
+      ui.levelBtn.className = `rounded-xl py-2.5 text-sm font-semibold text-white ${state.gold >= 4 && !state.battle ? "bg-blue-600 hover:bg-blue-500" : "bg-blue-300 cursor-not-allowed"}`;
+      ui.refreshBtn.className = `rounded-xl py-2.5 text-sm font-semibold text-white ${state.gold >= 2 && !state.battle ? "bg-slate-900 hover:bg-slate-800" : "bg-slate-400 cursor-not-allowed"}`;
+      ui.battleBtn.className = `rounded-xl py-2.5 text-sm font-semibold text-white ${!state.battle && state.heroes.length > 0 ? "bg-emerald-600 hover:bg-emerald-500" : "bg-emerald-300 cursor-not-allowed"}`;
+      ui.soundBtn.className = `rounded-xl py-2.5 text-sm font-semibold text-white ${state.soundOn ? "bg-amber-500 hover:bg-amber-400" : "bg-slate-500 hover:bg-slate-400"}`;
+    }
+
+    function levelUpCheck() {
+      const need = state.level * 2;
+      while (state.xp >= need) {
+        state.xp -= need;
+        state.level += 1;
+        log(`升级成功，阵容人口上限提升到 ${state.level + 2}。`);
+        showBanner(`等级提升！Lv.${state.level}`, "bg-blue-600");
+        playBeep("victory");
+      }
+    }
+
+    function buyHero(idx) {
+      if (state.battle) return;
+      const unit = state.shop[idx];
+      const cap = state.level + 2;
+      if (state.heroes.length >= cap) {
+        log("人口已满，先升级人口。");
+        showBanner("人口已满", "bg-slate-700");
+        return;
+      }
+      if (state.gold < unit.cost) {
+        log("金币不足，无法招募。");
+        showBanner("金币不足", "bg-rose-600");
+        return;
+      }
+      state.gold -= unit.cost;
+      const hero = makeUnit(unit, "hero", state.heroes.length);
+      state.heroes.push(hero);
+      log(`招募成功：${unit.name}。`);
+      playBeep("hit");
+      updateUI();
+      generateShop();
+    }
+
+    function rerollShop() {
+      if (state.battle) return;
+      if (state.gold < 2) return;
+      state.gold -= 2;
+      log("商店已刷新。");
+      playBeep("hit");
+      generateShop();
+      updateUI();
+    }
+
+    function levelUpPopulation() {
+      if (state.battle) return;
+      if (state.gold < 4) return;
+      state.gold -= 4;
+      state.xp += 1;
+      log("购买经验，离升级更近一步。");
+      playBeep("hit");
+      levelUpCheck();
+      updateUI();
+    }
+
+    function spawnEnemies() {
+      state.enemies = [];
+      const count = clamp(2 + Math.floor(state.round / 2), 2, 6);
+      const tier = state.round >= 8 ? 3 : state.round >= 4 ? 2 : 1;
+      for (let i = 0; i < count; i++) {
+        let template;
+        if (state.round >= 10 && i === 0) {
+          template = enemyPool.find(e => e.key === "boss");
+        } else {
+          const pool = tier === 1
+            ? enemyPool.filter(e => e.key !== "boss")
+            : tier === 2
+              ? enemyPool.filter(e => ["orc", "wolf", "witch", "slime"].includes(e.key))
+              : enemyPool.filter(e => e.key !== "boss");
+          template = choice(pool);
         }
+        state.enemies.push(makeUnit(template, "enemy", i));
+        state.enemies[i].x = W - 140 + rand(-10, 10);
+        state.enemies[i].y = clamp(100 + i * 86 + rand(-10, 10), 70, H - 70);
+        state.enemies[i].tx = W - 140;
+        state.enemies[i].ty = 100 + i * 86;
+      }
+      log(`第 ${state.round} 回合，敌军来袭。`);
+    }
 
-        function initEnemies() {
-            enemies = [
-                { x: 300, y: 70, type: 'monster', hp: 150, maxHp: 150, range: 40, atk: 12, color: '#ef4444' },
-                { x: 300, y: 170, type: 'monster', hp: 150, maxHp: 150, range: 40, atk: 12, color: '#ef4444' }
-            ];
+    function startBattle() {
+      if (state.battle || state.heroes.length === 0) return;
+      state.battle = true;
+      state.battleEnded = false;
+      spawnEnemies();
+      showBanner(`第 ${state.round} 回合 开战`, "bg-slate-900");
+      playBeep("hit");
+      updateUI();
+    }
+
+    function endBattle(victory) {
+      state.battle = false;
+      state.battleEnded = true;
+
+      if (victory) {
+        const goldReward = 5 + Math.floor(state.round * 1.2);
+        const xpReward = 1 + Math.floor(state.round / 2);
+        state.gold += goldReward;
+        state.xp += xpReward;
+        state.round += 1;
+        state.lives = Math.min(5, state.lives + 1);
+        log(`胜利！获得 ${goldReward} 金币和 ${xpReward} 经验。`);
+        showBanner("胜利！", "bg-emerald-600");
+        playBeep("victory");
+        levelUpCheck();
+      } else {
+        state.lives -= 1;
+        state.gold = Math.max(0, state.gold - 3);
+        log("战败，城防减少 1 点。");
+        showBanner("战败", "bg-rose-600");
+        playBeep("hit");
+        if (state.lives <= 0) {
+          log("城防归零，游戏重置。");
+          showBanner("游戏结束", "bg-slate-950");
+          setTimeout(resetGame, 900);
+          return;
         }
+      }
 
-        function drawBoard() {
-            ctx.fillStyle = "#0f172a"; ctx.fillRect(0,0, canvas.width, canvas.height);
-            // 棋盘格模拟线
-            ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 1;
-            for(let i=0; i<canvas.width; i+=40) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,canvas.height); ctx.stroke(); }
-            
-            // 绘制角色主体
-            [...heros, ...enemies].forEach(u => {
-                ctx.fillStyle = u.color;
-                ctx.beginPath(); ctx.arc(u.x, u.y, 12, 0, Math.PI*2); ctx.fill();
-                // 血条
-                ctx.fillStyle = "#22c55e";
-                ctx.fillRect(u.x - 12, u.y - 20, 24 * (u.hp / u.maxHp), 3);
-            });
+      state.heroes.forEach(h => {
+        if (h.hp > 0) h.hp = Math.max(1, Math.round(h.hp * 0.5));
+      });
+
+      state.enemies = [];
+      state.heroes = state.heroes.filter(h => h.hp > 0);
+      state.heroes.forEach((h, i) => {
+        h.x = 140;
+        h.y = clamp(100 + i * 86, 70, H - 70);
+        h.tx = 140;
+        h.ty = 100 + i * 86;
+        h.cd = 0.2;
+      });
+
+      generateShop();
+      updateUI();
+    }
+
+    function resetGame() {
+      state.gold = 10;
+      state.round = 1;
+      state.level = 1;
+      state.xp = 0;
+      state.lives = 5;
+      state.battle = false;
+      state.battleEnded = false;
+      state.heroes = [];
+      state.enemies = [];
+      state.particles = [];
+      state.damageTexts = [];
+      state.shop = [];
+      state.messageTimer = 0;
+      ui.logBox.innerHTML = "";
+      log("新开局。");
+      generateShop();
+      updateUI();
+    }
+
+    function findTarget(unit, list) {
+      const alive = list.filter(u => u.hp > 0);
+      if (alive.length === 0) return null;
+
+      if (unit.role === "support" && unit.side === "hero") {
+        const injured = state.heroes.filter(h => h.hp > 0 && h.hp < h.maxHp);
+        if (injured.length > 0) {
+          injured.sort((a, b) => (a.hp / a.maxHp) - (b.hp / b.maxHp));
+          return injured[0];
         }
+      }
 
-        function runBattleAI() {
-            if (!isFighting) return;
-
-            // 己方人工智能寻敌
-            heros.forEach(h => {
-                if (enemies.length === 0 || h.hp <= 0) return;
-                let target = enemies[0]; // 锁定首位敌人
-                let dist = Math.hypot(target.x - h.x, target.y - h.y);
-
-                if (dist > h.range) {
-                    h.x += (target.x - h.x) / dist * 1.5;
-                    h.y += (target.y - h.y) / dist * 1.5;
-                } else if (Math.random() < 0.15) {
-                    target.hp -= h.atk; // 造成伤害
-                    // 弹道特效
-                    ctx.strokeStyle = "#fbbf24"; ctx.beginPath(); ctx.moveTo(h.x, h.y); ctx.lineTo(target.x, target.y); ctx.stroke();
-                }
-            });
-
-            // 敌方人工智能寻敌
-            enemies.forEach(e => {
-                if (heros.length === 0 || e.hp <= 0) return;
-                let target = heros.filter(h => h.hp > 0)[0];
-                if (!target) return;
-                let dist = Math.hypot(target.x - e.x, target.y - e.y);
-
-                if (dist > e.range) {
-                    e.x += (target.x - e.x) / dist * 1.2;
-                    e.y += (target.y - e.y) / dist * 1.2;
-                } else if (Math.random() < 0.15) {
-                    target.hp -= e.atk;
-                }
-            });
-
-            // 过滤死亡实体
-            heros = heros.filter(h => h.hp > 0);
-            enemies = enemies.filter(e => e.hp > 0);
-
-            drawBoard();
-
-            // 胜负状态判定机
-            if (enemies.length === 0) {
-                clearInterval(chessLoop); isFighting = false; gold += 6;
-                document.getElementById("chess-gold").innerText = gold;
-                alert("⚔️ 胜利！获得本轮清缴奖金：6金币");
-            } else if (heros.length === 0) {
-                clearInterval(chessLoop); isFighting = false; gold = 10;
-                document.getElementById("chess-gold").innerText = gold;
-                alert("💀 败北！全军覆没，已重置初始薪酬。");
-            }
+      if (unit.role === "dive") {
+        const backline = alive.filter(u => u.role === "caster" || u.role === "support" || u.role === "ranged");
+        if (backline.length > 0) {
+          backline.sort((a, b) => Math.abs(a.y - unit.y) + Math.abs(a.x - unit.x) - (Math.abs(b.y - unit.y) + Math.abs(b.x - unit.x)));
+          return backline[0];
         }
+      }
 
-        function startChessBattle() {
-            if (heros.length === 0) { alert("请先在招募商店购买雇佣兵！"); return; }
-            if (isFighting) return;
-            isFighting = true;
-            initEnemies();
-            if(chessLoop) clearInterval(chessLoop);
-            chessLoop = setInterval(runBattleAI, 1000 / 30);
+      alive.sort((a, b) => {
+        const da = Math.hypot(a.x - unit.x, a.y - unit.y);
+        const db = Math.hypot(b.x - unit.x, b.y - unit.y);
+        return da - db;
+      });
+      return alive[0];
+    }
+
+    function addDamageText(x, y, text, color = "#fff") {
+      state.damageTexts.push({ x, y, text, color, life: 0.9, vy: -22, vx: rand(-5, 5) });
+    }
+
+    function spawnSpark(x, y, color) {
+      for (let i = 0; i < 5; i++) {
+        state.particles.push({
+          x, y,
+          vx: rand(-55, 55),
+          vy: rand(-55, 55),
+          life: rand(0.25, 0.5),
+          color
+        });
+      }
+    }
+
+    function dealDamage(attacker, target, baseDamage, isCrit = false, splash = false) {
+      const crit = isCrit || Math.random() < attacker.crit;
+      let dmg = baseDamage;
+      if (crit) dmg = Math.round(dmg * 1.7);
+      dmg = Math.max(1, Math.round(dmg - (target.armor || 0)));
+      if (target.shield > 0) {
+        const absorbed = Math.min(target.shield, dmg);
+        target.shield -= absorbed;
+        dmg -= absorbed;
+      }
+      target.hp -= dmg;
+      target.flash = 0.12;
+      target.attackFlash = 0.08;
+      addDamageText(target.x, target.y - 24, `${crit ? "暴击 " : ""}-${dmg}`, crit ? "#fda4af" : "#f8fafc");
+      spawnSpark(target.x, target.y, attacker.side === "hero" ? "#fbbf24" : "#f87171");
+      playBeep("hit");
+      if (splash) {
+        const others = (attacker.side === "hero" ? state.enemies : state.heroes).filter(u => u.hp > 0 && u !== target);
+        others.forEach(o => {
+          const d = Math.hypot(o.x - target.x, o.y - target.y);
+          if (d < 70) {
+            const sd = Math.max(1, Math.round(dmg * 0.45));
+            o.hp -= sd;
+            o.flash = 0.08;
+            addDamageText(o.x, o.y - 20, `-${sd}`, "#cbd5e1");
+          }
+        });
+      }
+    }
+
+    function attackLogic(unit, enemies, allies, dt) {
+      unit.cd -= dt;
+      const target = findTarget(unit, unit.side === "hero" ? enemies : allies);
+      if (!target) return;
+
+      const dist = Math.hypot(target.x - unit.x, target.y - unit.y);
+
+      if (unit.role === "support" && unit.side === "hero" && target !== unit) {
+        if (dist <= unit.range && unit.cd <= 0) {
+          const heal = unit.heal;
+          target.hp = Math.min(target.maxHp, target.hp + heal);
+          target.flash = 0.08;
+          addDamageText(target.x, target.y - 22, `+${heal}`, "#86efac");
+          spawnSpark(target.x, target.y, "#34d399");
+          playBeep("heal");
+          unit.cd = unit.cooldown;
+        } else {
+          moveToward(unit, target, dt, 0.85);
         }
+        return;
+      }
 
-        initEnemies(); drawBoard();
-    </script>
+      if (dist > unit.range) {
+        const speedBoost = unit.role === "dive" ? 1.28 : 1;
+        moveToward(unit, target, dt, speedBoost);
+      } else if (unit.cd <= 0) {
+        const splash = unit.role === "caster";
+        const bonus = unit.role === "dive" ? 1.25 : 1;
+        dealDamage(unit, target, Math.round(unit.atk * bonus), false, splash);
+        unit.cd = unit.cooldown;
+        if (unit.role === "dive") {
+          unit.speed = Math.min(unit.speed + 4, 120);
+        }
+      }
+    }
+
+    function moveToward(unit, target, dt, speedMult = 1) {
+      const dx = target.x - unit.x;
+      const dy = target.y - unit.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      const step = unit.speed * speedMult * dt;
+      unit.x += dx / dist * step;
+      unit.y += dy / dist * step;
+    }
+
+    function updateBattle(dt) {
+      state.heroes.forEach(u => { u.flash = Math.max(0, u.flash - dt); u.attackFlash = Math.max(0, u.attackFlash - dt); });
+      state.enemies.forEach(u => { u.flash = Math.max(0, u.flash - dt); u.attackFlash = Math.max(0, u.attackFlash - dt); });
+
+      state.heroes.forEach(h => attackLogic(h, state.enemies, state.heroes, dt));
+      state.enemies.forEach(e => attackLogic(e, state.heroes, state.enemies, dt));
+
+      state.heroes = state.heroes.filter(u => u.hp > 0);
+      state.enemies = state.enemies.filter(u => u.hp > 0);
+
+      state.particles.forEach(p => {
+        p.life -= dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.vy += 18 * dt;
+      });
+      state.particles = state.particles.filter(p => p.life > 0);
+
+      state.damageTexts.forEach(t => {
+        t.life -= dt;
+        t.y += t.vy * dt;
+        t.x += t.vx * dt;
+      });
+      state.damageTexts = state.damageTexts.filter(t => t.life > 0);
+
+      if (state.heroes.length === 0 || state.enemies.length === 0) {
+        endBattle(state.enemies.length === 0 && state.heroes.length > 0);
+      }
+    }
+
+    function drawBackground() {
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, "#0f172a");
+      grad.addColorStop(1, "#111827");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.save();
+      ctx.globalAlpha = 0.25;
+      for (let i = 0; i < 14; i++) {
+        ctx.fillStyle = i % 2 === 0 ? "#1e293b" : "#0b1220";
+        ctx.fillRect(i * 60, 0, 1, H);
+      }
+      for (let j = 0; j < 8; j++) {
+        ctx.fillStyle = "#1e293b";
+        ctx.fillRect(0, j * 60, W, 1);
+      }
+      ctx.restore();
+
+      const laneLeft = 120;
+      const laneMid = W / 2;
+      const laneRight = W - 120;
+
+      ctx.save();
+      ctx.globalAlpha = 0.2;
+      ctx.strokeStyle = "#60a5fa";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(laneLeft, 40);
+      ctx.lineTo(laneLeft, H - 40);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(laneRight, 40);
+      ctx.lineTo(laneRight, H - 40);
+      ctx.stroke();
+      ctx.strokeStyle = "#334155";
+      ctx.beginPath();
+      ctx.moveTo(laneMid, 20);
+      ctx.lineTo(laneMid, H - 20);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawUnit(u) {
+      const w = 58;
+      const h = 46;
+      const x = u.x - w / 2;
+      const y = u.y - h / 2;
+
+      ctx.save();
+      if (u.flash > 0) ctx.globalAlpha = 0.85 + Math.sin(performance.now() / 30) * 0.08;
+
+      roundRect(x, y, w, h, 14);
+      ctx.fillStyle = u.side === "hero" ? "#0f172a" : "#2b1111";
+      ctx.fill();
+
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = u.side === "hero" ? u.color : "#fb7185";
+      ctx.stroke();
+
+      if (u.attackFlash > 0) {
+        ctx.save();
+        ctx.globalAlpha = 0.25;
+        roundRect(x - 4, y - 4, w + 8, h + 8, 18);
+        ctx.fillStyle = u.color;
+        ctx.fill();
+        ctx.restore();
+      }
+
+      ctx.beginPath();
+      ctx.fillStyle = u.color;
+      ctx.arc(u.x - 18, u.y, 12, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 16px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(u.icon, u.x - 18, u.y + 0.5);
+
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#e2e8f0";
+      ctx.font = "bold 12px system-ui, sans-serif";
+      ctx.fillText(u.name, x + 14, y + 15);
+
+      const hpPct = clamp(u.hp / u.maxHp, 0, 1);
+      ctx.fillStyle = "rgba(255,255,255,.12)";
+      roundRect(x + 13, y + 28, 30, 8, 6);
+      ctx.fill();
+
+      ctx.fillStyle = hpPct > 0.5 ? "#22c55e" : hpPct > 0.25 ? "#f59e0b" : "#ef4444";
+      roundRect(x + 13, y + 28, 30 * hpPct, 8, 6);
+      ctx.fill();
+
+      if (u.shield > 0) {
+        ctx.fillStyle = "#60a5fa";
+        ctx.font = "10px system-ui, sans-serif";
+        ctx.fillText(`护盾 ${u.shield}`, x + 13, y + 43);
+      }
+
+      ctx.restore();
+    }
+
+    function drawParticles() {
+      state.particles.forEach(p => {
+        ctx.save();
+        ctx.globalAlpha = clamp(p.life * 2, 0, 1);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+    }
+
+    function drawDamageTexts() {
+      state.damageTexts.forEach(t => {
+        ctx.save();
+        ctx.globalAlpha = clamp(t.life, 0, 1);
+        ctx.fillStyle = t.color;
+        ctx.font = "bold 16px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(t.text, t.x, t.y);
+        ctx.restore();
+      });
+    }
+
+    function drawTopHUD() {
+      ctx.save();
+      ctx.fillStyle = "rgba(15, 23, 42, .45)";
+      roundRect(14, 14, 250, 70, 18);
+      ctx.fill();
+
+      ctx.fillStyle = "#e2e8f0";
+      ctx.font = "bold 15px system-ui, sans-serif";
+      ctx.fillText(`金币：${state.gold}`, 28, 40);
+      ctx.fillText(`回合：${state.round}   等级：${state.level}`, 28, 62);
+
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "12px system-ui, sans-serif";
+      ctx.fillText(`人口 ${state.heroes.length}/${state.level + 2} · 城防 ${state.lives}/5`, 28, 82);
+      ctx.restore();
+    }
+
+    function draw() {
+      drawBackground();
+
+      state.heroes.forEach(drawUnit);
+      state.enemies.forEach(drawUnit);
+
+      drawParticles();
+      drawDamageTexts();
+      drawTopHUD();
+
+      if (state.messageTimer > 0) {
+        state.messageTimer -= (performance.now() - state.lastFrame) / 1000;
+        if (state.messageTimer <= 0) ui.battleBanner.classList.add("hidden");
+      }
+
+      ctx.save();
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "12px system-ui, sans-serif";
+      ctx.textAlign = "right";
+      ctx.fillText("左侧：英雄阵营    右侧：敌方阵营", W - 18, H - 16);
+      ctx.restore();
+    }
+
+    function frame(now) {
+      const dt = Math.min(0.033, (now - state.lastFrame) / 1000);
+      state.lastFrame = now;
+
+      if (state.battle) updateBattle(dt);
+      draw();
+      updateUI();
+      requestAnimationFrame(frame);
+    }
+
+    ui.refreshBtn.onclick = rerollShop;
+    ui.levelBtn.onclick = levelUpPopulation;
+    ui.battleBtn.onclick = startBattle;
+    ui.soundBtn.onclick = () => {
+      state.soundOn = !state.soundOn;
+      updateUI();
+      log(state.soundOn ? "音效已开启。" : "音效已关闭。");
+    };
+    ui.clearLogBtn.onclick = () => {
+      ui.logBox.innerHTML = "";
+      log("日志已清空。");
+    };
+
+    generateShop();
+    updateUI();
+    log("欢迎来到战境。先招募，再开战。");
+    requestAnimationFrame(frame);
+  </script>
 </body>
 </html>
