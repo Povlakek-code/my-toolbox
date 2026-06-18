@@ -3,27 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D射线迷宫 - 极简工具箱</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>赛博迷宫 3D - CyberRay 3D</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        .font-cyber { font-family: 'Orbitron', sans-serif; }
+    </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-4 flex flex-col items-center justify-center">
-    <div class="max-w-md w-full bg-slate-800 p-5 rounded-2xl shadow-2xl border border-slate-700 text-center">
-        <div class="text-left mb-3 flex justify-between items-center">
-            <div>
-                <a href="./index.html" class="text-xs text-blue-400 hover:underline">← 返回首页</a>
-                <h2 class="text-lg font-bold text-white mt-0.5">👁️ 3D 射线迷宫</h2>
-            </div>
-            <span class="text-xs font-mono bg-red-950 px-2 py-0.5 rounded text-red-400 border border-red-900">Raycasting 引擎</span>
-        </div>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 flex flex-col items-center justify-center font-sans antialiased overflow-hidden selection:bg-cyan-500">
+
+    <div class="max-w-4xl w-full bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl shadow-[0_0_50px_rgba(6,182,212,0.15)] border border-slate-800 text-center relative">
         
-        <div class="bg-black rounded-xl overflow-hidden inline-block p-1 border border-slate-700">
-            <canvas id="raycanvas" width="360" height="240"></canvas>
+        <div class="flex justify-between items-center mb-4 pb-4 border-b border-slate-800">
+            <div>
+                <a href="./index.html" class="text-xs text-cyan-400 hover:text-cyan-300 transition flex items-center gap-1">← 返回首页</a>
+                <h1 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 font-cyber tracking-wider mt-1">CYBER_RAY 3D</h1>
+            </div>
+            <div class="flex gap-3 font-cyber text-xs">
+                <div class="bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-800">
+                    <span class="text-slate-400">SCORE:</span> <span id="score-ui" class="text-yellow-400 font-bold">0</span>
+                </div>
+                <div class="bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-800">
+                    <span class="text-slate-400">KEYS:</span> <span id="keys-ui" class="text-cyan-400 font-bold">0/1</span>
+                </div>
+                <div class="bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-800">
+                    <span class="text-slate-400">TIME:</span> <span id="time-ui" class="text-emerald-400 font-bold">0.0s</span>
+                </div>
+            </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-2 mt-4 text-left text-xs text-slate-400 font-mono bg-slate-950 p-3 rounded-xl border border-slate-800">
-            <div>前/后: <span class="text-slate-200 font-bold">W / S</span></div>
-            <div>视角旋转: <span class="text-slate-200 font-bold">A / D</span></div>
-            <div class="col-span-2 text-emerald-400 mt-1">🎯 目标：在伪3D视界中寻找出口吧！</div>
+        <div class="relative bg-black rounded-2xl overflow-hidden shadow-inner border border-slate-800 inline-block group">
+            <canvas id="raycanvas" width="640" height="400" class="block"></canvas>
+            
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40">
+                <div class="w-2 h-2 border border-cyan-400 rounded-full"></div>
+            </div>
+
+            <div id="overlay" class="absolute inset-0 bg-slate-950/90 hidden flex-col items-center justify-center backdrop-blur-md transition-all">
+                <h2 id="overlay-title" class="text-4xl font-black font-cyber text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 mb-2">MISSION ACCOMPLISHED</h2>
+                <p id="overlay-desc" class="text-slate-400 text-sm mb-6 font-mono">你成功逃离了矩阵迷宫！</p>
+                <button onclick="resetGame()" class="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 font-cyber text-sm font-bold rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:scale-105 active:scale-95 transition-all text-white">
+                    PLAY AGAIN
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 text-left text-xs font-mono">
+            <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800/60 flex items-center gap-3">
+                <div class="grid grid-cols-2 gap-1 shrink-0">
+                    <kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-center border-b-2 border-slate-600 font-bold">W</kbd>
+                    <kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-center border-b-2 border-slate-600 font-bold">S</kbd>
+                    <kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-center border-b-2 border-slate-600 font-bold">A</kbd>
+                    <kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-center border-b-2 border-slate-600 font-bold">D</kbd>
+                </div>
+                <div class="text-slate-400">
+                    <span class="text-slate-200 font-bold block">前后 / 左右旋转</span>
+                    通过传统WASD键在矩阵里穿梭
+                </div>
+            </div>
+            <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800/60 flex items-center gap-2 text-amber-400">
+                <span class="text-xl">🔑</span>
+                <div>
+                    <span class="text-slate-200 font-bold block">寻找电能核心</span>
+                    拾取地图上的黄色核心来解锁红色的安全闸门。
+                </div>
+            </div>
+            <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800/60 flex items-center gap-2 text-emerald-400">
+                <span class="text-xl">🏁</span>
+                <div>
+                    <span class="text-slate-200 font-bold block">撤离点</span>
+                    解锁大门后，前往绿色的超时空传送阵完成通关！
+                </div>
+            </div>
         </div>
     </div>
 
@@ -31,29 +82,60 @@
         const canvas = document.getElementById("raycanvas");
         const ctx = canvas.getContext("2d");
 
-        // 1=墙壁, 0=通道
-        const map = [
-            [1,1,1,1,1,1,1,1],
-            [1,0,0,0,0,0,0,1],
-            [1,0,1,1,0,1,0,1],
-            [1,0,1,0,0,1,0,1],
-            [1,0,1,0,1,1,0,1],
-            [1,0,0,0,0,0,0,1],
-            [1,1,1,1,1,1,1,1]
+        // 核心地图定义
+        // 0=通道, 1=普通墙, 2=钥匙(电能核心), 3=锁住的门, 4=终点出口
+        let map = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,1,0,0,0,0,0,0,1,2,0,0,1],
+            [1,0,1,0,1,0,1,1,1,1,0,1,1,1,0,1],
+            [1,0,1,0,0,0,1,0,0,1,0,0,0,1,0,1],
+            [1,0,1,1,1,1,1,0,0,1,1,1,0,1,0,1],
+            [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
+            [1,1,1,1,1,1,1,3,3,1,0,1,1,1,1,1],
+            [1,0,0,0,0,0,1,0,0,1,0,1,0,0,0,1],
+            [1,0,1,1,1,0,1,0,0,0,0,1,0,1,0,1],
+            [1,0,0,0,1,0,0,0,0,1,0,0,0,1,4,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
         ];
-        const mapW = 8, mapH = 7;
+        const mapW = map[0].length;
+        const mapH = map.length;
 
-        let pX = 2.5, pY = 2.5; // 玩家初始化格子坐标
-        let pAngle = 0;         // 视角弧度
-        const FOV = Math.PI / 3; // 60度视野
+        // 玩家初始状态
+        let pX, pY, pAngle;
+        let hasKey = false;
+        let score = 0;
+        let startTime = Date.now();
+        let gameActive = true;
+        const FOV = Math.PI / 3; 
 
+        function resetGame() {
+            pX = 1.5; 
+            pY = 1.5; 
+            pAngle = 0;
+            hasKey = false;
+            score = 0;
+            startTime = Date.now();
+            gameActive = true;
+            
+            // 重置地图上的物品
+            map[1][12] = 2; // 重新放上钥匙
+            map[6][7] = 3;  // 重新关上门
+            map[6][8] = 3;
+
+            document.getElementById("overlay").classList.add("hidden");
+        }
+
+        // 键盘监听
         let keys = {};
         window.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
         window.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
 
-        function updateMovement() {
-            let moveSpeed = 0.04;
-            let rotSpeed = 0.03;
+        // 物理更新与碰撞检测 (更丝滑的滑墙体验)
+        function updatePhysics() {
+            if (!gameActive) return;
+
+            let moveSpeed = 0.05;
+            let rotSpeed = 0.04;
 
             if (keys["a"]) pAngle -= rotSpeed;
             if (keys["d"]) pAngle += rotSpeed;
@@ -61,65 +143,219 @@
             let dx = Math.cos(pAngle) * moveSpeed;
             let dy = Math.sin(pAngle) * moveSpeed;
 
+            // 边缘留白的碰撞体检测 (Buffer = 0.2 格子)
+            let buffer = 0.2;
+
             if (keys["w"]) {
-                if (map[Math.floor(pY)][Math.floor(pX + dx * 2)] === 0) pX += dx;
-                if (map[Math.floor(pY + dy * 2)][Math.floor(pX)] === 0) pY += dy;
+                let checkX = pX + dx + (dx > 0 ? buffer : -buffer);
+                if (!isWall(checkX, pY)) pX += dx;
+                let checkY = pY + dy + (dy > 0 ? buffer : -buffer);
+                if (!isWall(pX, checkY)) pY += dy;
             }
             if (keys["s"]) {
-                if (map[Math.floor(pY)][Math.floor(pX - dx * 2)] === 0) pX -= dx;
-                if (map[Math.floor(pY - dy * 2)][Math.floor(pX)] === 0) pY -= dy;
+                let checkX = pX - dx - (dx > 0 ? buffer : -buffer);
+                if (!isWall(checkX, pY)) pX -= dx;
+                let checkY = pY - dy - (dy > 0 ? buffer : -buffer);
+                if (!isWall(pX, checkY)) pY -= dy;
+            }
+
+            // 检查当前格子触发事件
+            let curGridX = Math.floor(pX);
+            let curGridY = Math.floor(pY);
+            let cell = map[curGridY][curGridX];
+
+            if (cell === 2) { // 捡到钥匙
+                map[curGridY][curGridX] = 0; // 移除钥匙
+                hasKey = true;
+                score += 500;
+                // 自动开门
+                for(let y=0; y<mapH; y++) {
+                    for(let x=0; x<mapW; x++) {
+                        if(map[y][x] === 3) map[y][x] = 0;
+                    }
+                }
+            } else if (cell === 4) { // 踩到终点
+                endGame(true);
             }
         }
 
-        function renderRaycasting() {
-            updateMovement();
-            ctx.clearRect(0,0, canvas.width, canvas.height);
+        function isWall(x, y) {
+            if (x < 0 || x >= mapW || y < 0 || y >= mapH) return true;
+            let cell = map[Math.floor(y)][Math.floor(x)];
+            return cell === 1 || cell === 3; // 1和3阻挡通行
+        }
 
-            // 绘制天花板和地面
-            ctx.fillStyle = "#1e293b"; ctx.fillRect(0, 0, canvas.width, canvas.height/2);
-            ctx.fillStyle = "#0f172a"; ctx.fillRect(0, canvas.height/2, canvas.width, canvas.height/2);
+        function endGame(success) {
+            gameActive = false;
+            const overlay = document.getElementById("overlay");
+            const title = document.getElementById("overlay-title");
+            const desc = document.getElementById("overlay-desc");
+            
+            if (success) {
+                title.innerText = "MISSION ACCOMPLISHED";
+                title.className = "text-4xl font-black font-cyber text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500 mb-2";
+                let finalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+                desc.innerText = `通关成功！最终得分: ${score + Math.max(0, 2000 - Math.floor(finalTime * 10))} | 用时: ${finalTime} 秒`;
+            }
+            overlay.classList.remove("hidden");
+        }
 
-            // 逐像素扫描线发射射线
+        // 渲染管线
+        function render() {
+            updatePhysics();
+            
+            // 1. 更新顶部实时 UI
+            if (gameActive) {
+                document.getElementById("time-ui").innerText = ((Date.now() - startTime) / 1000).toFixed(1) + "s";
+                document.getElementById("keys-ui").innerText = hasKey ? "1/1 (GATE OPEN)" : "0/1";
+                document.getElementById("score-ui").innerText = score;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 2. 绘制天空与地面的科幻感渐变
+            let skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height/2);
+            skyGrad.addColorStop(0, "#020617");
+            skyGrad.addColorStop(1, "#0f172a");
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height/2);
+
+            let floorGrad = ctx.createLinearGradient(0, canvas.height/2, 0, canvas.height);
+            floorGrad.addColorStop(0, "#090d16");
+            floorGrad.addColorStop(1, "#020408");
+            ctx.fillStyle = floorGrad;
+            ctx.fillRect(0, canvas.height/2, canvas.width, canvas.height/2);
+
+            // 3. 绘制伪3D地平线/网格线视觉伪影，增强空间移动感
+            ctx.strokeStyle = "rgba(6, 182, 212, 0.03)";
+            ctx.lineWidth = 1;
+            for(let y = canvas.height/2; y < canvas.height; y += 15) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+            }
+
+            // 4. 光线投射渲染墙体
             const numRays = canvas.width;
             for (let i = 0; i < numRays; i++) {
                 let rayAngle = (pAngle - FOV/2) + (i / numRays) * FOV;
                 let distance = 0;
                 let hitWall = false;
+                let wallType = 0;
 
                 let cos = Math.cos(rayAngle);
                 let sin = Math.sin(rayAngle);
 
-                while (!hitWall && distance < 16) {
-                    distance += 0.05;
+                // 提高精度：减小步长到 0.02
+                while (!hitWall && distance < 20) {
+                    distance += 0.02;
                     let checkX = Math.floor(pX + cos * distance);
                     let checkY = Math.floor(pY + sin * distance);
 
                     if (checkX < 0 || checkX >= mapW || checkY < 0 || checkY >= mapH) {
-                        hitWall = true; distance = 16;
-                    } else if (map[checkY][checkX] > 0) {
-                        hitWall = true;
+                        hitWall = true; distance = 20; wallType = 1;
+                    } else {
+                        let cell = map[checkY][checkX];
+                        if (cell > 0 && cell !== 2) { // 忽略地面上的钥匙，只对实体墙进行渲染
+                            hitWall = true;
+                            wallType = cell;
+                        }
                     }
                 }
 
-                // 修正鱼眼镜头畸变
+                // 修正鱼眼镜头
                 let correctedDist = distance * Math.cos(rayAngle - pAngle);
-                let wallHeight = Math.min(canvas.height, (canvas.height / correctedDist));
+                // 基础立体高度因子
+                let wallHeight = Math.min(canvas.height, (canvas.height * 1.2 / correctedDist));
 
-                // 模拟光线衰减深度阴影
-                let shade = Math.floor(200 - (correctedDist * 12));
-                if (shade < 30) shade = 30;
+                // 基础光照衰减 (越远越黑)
+                let baseBright = Math.max(0, 1 - (correctedDist / 14));
 
-                ctx.strokeStyle = `rgb(${shade}, ${shade + 10}, ${shade + 25})`;
+                // 根据不同的墙体类型赋予不同的霓虹色系
+                let r, g, b;
+                if (wallType === 1) {        // 普通蓝色赛博墙
+                    r = Math.floor(14 * baseBright);
+                    g = Math.floor(116 * baseBright);
+                    b = Math.floor(144 * baseBright);
+                } else if (wallType === 3) { // 红色能量大门
+                    let breathe = Math.sin(Date.now() / 200) * 0.2 + 0.8; // 动态呼吸灯
+                    r = Math.floor(220 * baseBright * breathe);
+                    g = Math.floor(38 * baseBright);
+                    b = Math.floor(38 * baseBright);
+                } else if (wallType === 4) { // 绿色超时空终点
+                    let flash = Math.random() * 0.3 + 0.7; // 粒子闪烁感
+                    r = Math.floor(16 * baseBright);
+                    g = Math.floor(185 * baseBright * flash);
+                    b = Math.floor(129 * baseBright);
+                }
+
+                // 画垂直光束墙
+                ctx.strokeStyle = `rgb(${r}, ${g}, ${b})`;
+                ctx.lineWidth = 1;
                 ctx.beginPath();
                 ctx.moveTo(i, (canvas.height - wallHeight) / 2);
                 ctx.lineTo(i, (canvas.height + wallHeight) / 2);
                 ctx.stroke();
             }
-            requestAnimationFrame(renderRaycasting);
+
+            // 5. 右上角绘制 2D 高级迷你小地图 (Mini-map)
+            drawMiniMap();
+
+            requestAnimationFrame(render);
         }
 
-        // 自动启动引擎
-        renderRaycasting();
+        // 绘制迷你地图逻辑
+        function drawMiniMap() {
+            const size = 8; // 每个小格子大小
+            const offset = 15; // 距离视窗边缘偏移
+            
+            ctx.save();
+            ctx.translate(canvas.width - mapW * size - offset, offset);
+            
+            // 地图黑色半透明底衬
+            ctx.fillStyle = "rgba(15, 23, 42, 0.75)";
+            ctx.fillRect(-4, -4, mapW * size + 8, mapH * size + 8);
+            ctx.strokeStyle = "rgba(51, 65, 85, 0.5)";
+            ctx.strokeRect(-4, -4, mapW * size + 8, mapH * size + 8);
+
+            for (let y = 0; y < mapH; y++) {
+                for (let x = 0; x < mapW; x++) {
+                    let cell = map[y][x];
+                    if (cell === 1) {
+                        ctx.fillStyle = "rgba(30, 41, 59, 0.9)"; // 墙
+                    } else if (cell === 3) {
+                        ctx.fillStyle = "rgba(239, 68, 68, 0.9)";  // 红门
+                    } else if (cell === 4) {
+                        ctx.fillStyle = "rgba(16, 185, 129, 0.9)"; // 绿出口
+                    } else if (cell === 2) {
+                        ctx.fillStyle = "rgba(234, 179, 8, 0.9)";   // 黄色核心
+                    } else {
+                        continue; // 空地不画
+                    }
+                    ctx.fillRect(x * size, y * size, size - 0.5, size - 0.5);
+                }
+            }
+
+            // 在小地图上绘制玩家质点
+            let pMapX = pX * size;
+            let pMapY = pY * size;
+            ctx.fillStyle = "#22d3ee";
+            ctx.beginPath();
+            ctx.arc(pMapX, pMapY, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 绘制玩家小地图视线方向短线
+            ctx.strokeStyle = "#22d3ee";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(pMapX, pMapY);
+            ctx.lineTo(pMapX + Math.cos(pAngle) * 6, pMapY + Math.sin(pAngle) * 6);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // 启动
+        resetGame();
+        render();
     </script>
 </body>
 </html>
